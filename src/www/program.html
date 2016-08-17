@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BAYMS</title>
+    <meta name="viewport" content="width=device-width">
+    <link href="/img/favicon.png" rel="icon"/>
+    <link href="/css/kube.css" rel="stylesheet"/>
+    <link href="/css/base.css" rel="stylesheet"/>
+    <link href="/css/core.css" rel="stylesheet"/>
+    <link href="/css/app.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css?family=Raleway|Taviraj" rel="stylesheet">
+</head>
+<body v-cloak>
+    <h2>{{model.event.type}} at {{model.event.location}}</h2>
+    <h3 class="muted subtitle">
+        {{timeString(stringDateTime(model.event.time))}}
+        {{dateString(stringDateTime(model.event.time))}}
+    </h3>
+    <table class="flat">
+        <thead>
+            <th>Piece Name</th>
+            <th>Composer</th>
+            <th>Performer</th>
+        </thead>
+        <tbody v-sortable.tr="state">
+            <tr v-for="piece in model.event.piece" v-if="piece.approved">
+                <td>{{piece.name}}</td>
+                <td>{{piece.composer}}</td>
+                <td>{{piece.performer}}</td>
+            </tr>
+        </tbody>
+    </table>
+    <script src="/js/vue.js" type="text/javascript"></script>
+    <script src="/js/jquery.js" type="text/javascript"></script>
+    <script src="/js/ajax.js" type="text/javascript"></script>
+    <script src="/js/sortable.js" type="text/javascript"></script>
+    <script src="/js/vue-sortable.js" type="text/javascript"></script>
+    <script>
+        var vm = new Vue({
+            el: "body",
+            data: {
+                ready: false,
+                model: {
+                    event: {}
+                }
+            },
+            created: function () {
+                var event_id = window.location.hash.substr(1);
+                var self = this;
+                $.get('/api/event/' + event_id)
+                    .done(function (obj) {
+                        self.ready = true;
+                        self.model.event = obj;
+                        console.log(obj)
+                    })
+            },
+            methods: {
+                dateString: function (unix) {
+                    return (new Date(unix * 1000)).toLocaleDateString();
+                },
+                timeString: function (unix) {
+                    return (new Date(unix * 1000)).toLocaleTimeString();
+                },
+                stringDateTime: function (str) {
+                    return parseInt((new Date(str)).getTime()/1000);
+                }
+            }
+        });
+        document.body.contentEditable='true';
+        document.designMode='on';
+    </script>
+</body>
+</html>
