@@ -86,7 +86,7 @@
                         return self.setMessage("Your passwords don't match.")
                     $.ajax({
                         method: 'POST',
-                        url: '/api/auth/' + self.mode,
+                        url: '/api/v2/auth/' + self.mode,
                         data: self.auth
                     }).done(function (data) {
                         sessionStorage.setItem('token', data.auth_token);

@@ -44,6 +44,14 @@ serve both the RESTful API and the website.
     return res.sendFile(path.join(__dirname, './www/reset.html'));
   });
 
+  app.get('/reset/:auth_token', function(req, res) {
+    return res.sendFile(path.join(__dirname, './www/reset.html'));
+  });
+
+  app.get('/program/:program_id', function(req, res) {
+    return res.sendFile(path.join(__dirname, './www/program.html'));
+  });
+
   require('./api')(app);
 
   app.listen(3000);

@@ -16,6 +16,8 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }))
 app.use(cookieParser())
 
 app.use(express.static(path.join(__dirname, './www')))
+app.use('/upload', express.static(path.join(__dirname, './upload')))
+
 app.get('/app', (req, res) ->
     res.sendFile(path.join(__dirname, './www/app.html'))
 )
@@ -25,7 +27,10 @@ app.get('/auth', (req, res) ->
 app.get('/reset', (req, res) ->
     res.sendFile(path.join(__dirname, './www/reset.html'))
 )
-app.get('/program', (req, res) ->
+app.get('/reset/:auth_token', (req, res) ->
+    res.sendFile(path.join(__dirname, './www/reset.html'))
+)
+app.get('/program/:program_id', (req, res) ->
     res.sendFile(path.join(__dirname, './www/program.html'))
 )
 

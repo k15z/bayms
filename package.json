@@ -14,6 +14,7 @@
         "marked": "^0.3.5",
         "mongo-sanitize": "^1.0.0",
         "mongodb": "^2.1.18",
+        "multer": "^1.2.0",
         "nodemailer": "^2.4.2"
     },
     "devDependencies": {

@@ -69,7 +69,7 @@
                         return self.setMessage("Please fill in your email.")
                     $.ajax({
                         method: 'POST',
-                        url: '/api/auth/reset',
+                        url: '/api/v2/auth/reset',
                         data: self.auth
                     }).done(function (data) {
                         self.setMessage("Success. If this email exists, you will receive a password reset link. This link will expire in 15 minutes.", 1e10);
@@ -80,13 +80,13 @@
             },
             created: function () {
                 var self = this;
-                var hash = window.location.hash.substr(1);
-                if (hash && hash.length > 0)
-                    sessionStorage.setItem('token', hash);
-                if (sessionStorage.getItem('token'))
-                    window.location.href = "/app"
-                else
-                    self.ready = true
+                var url = window.location.href.split("/");
+                var auth_token = url[url.length - 1];
+                if (auth_token && auth_token.length > 0 && auth_token != 'reset') {
+                    sessionStorage.setItem('token', auth_token);
+                    window.location.href = "/app";
+                }
+                self.ready = true
             }
         })
     </script>

@@ -20,6 +20,9 @@ retrieving and updating the current signed-in user's profile.
         if (value === "false") {
           obj[key] = false;
         }
+        if (value === "true") {
+          obj[key] = true;
+        }
         if (typeof value === 'object') {
           booleanify(value);
         }
@@ -59,15 +62,24 @@ retrieving and updating the current signed-in user's profile.
         return res.status(401).send('access denied');
       }
       return db.collection('user').find({}).toArray(function(err, user) {
-        var i, key, len, ref, u, value;
+        var i, j, key, len, len1, ref, u, value;
         if (err) {
           return res.status(500).send('something went wrong');
         }
         if (indexOf.call((ref = req.requestee) != null ? ref.roles : void 0, "admin") >= 0) {
-          return res.status(200).send(user);
-        } else {
           for (i = 0, len = user.length; i < len; i++) {
             u = user[i];
+            for (key in u) {
+              value = u[key];
+              if (key === "picture" || key === "token") {
+                delete u[key];
+              }
+            }
+          }
+          return res.status(200).send(user);
+        } else {
+          for (j = 0, len1 = user.length; j < len1; j++) {
+            u = user[j];
             for (key in u) {
               value = u[key];
               if (key !== "_id" && key !== "name" && key !== "email" && key !== "phone" && key !== "roles") {
@@ -84,7 +96,6 @@ retrieving and updating the current signed-in user's profile.
       if (ref = !"admin", indexOf.call((ref1 = req.requestee) != null ? ref1.roles : void 0, ref) >= 0) {
         return res.status(401).send('access denied');
       }
-      console.log(req.params);
       user_id = new mongo.ObjectID(req.params.user_id);
       return db.collection('user').update({
         _id: user_id

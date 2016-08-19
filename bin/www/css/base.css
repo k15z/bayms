@@ -21,3 +21,8 @@ a {
 .float-right {
     float: right !important;
 }
+
+button.outline.red {
+    color: #f34248;
+    border-color: #f34248;
+}

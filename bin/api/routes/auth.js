@@ -122,7 +122,7 @@ in the user's profile and expires 24 hours after it is created.
         }
         token = authToken(user[0], req.headers, true);
         message = "Please use the following link to reset your password: ";
-        message += "`https://www.bayms.org/reset#" + token + "`";
+        message += "`https://www.bayms.org/reset/" + token + "`";
         mail = {
           from: '"BAYMS.Web" <bayms.web@gmail.com>',
           to: [user[0].email],

@@ -1,46 +1,46 @@
-###
-Copyright 2016, Kevin Zhang <kevz@mit.edu>
--------------------------------------------------------------------------------
-This handles api/news and api/news/:news_id requests. Only users with admin or 
-leader roles have the ability to POST news.
-###
+# Copyright 2016, All Rights Reserverd
+# Kevin Zhang <kevz@mit.edu>
 module.exports = (app, db, mailer) -> 
     mongo = require('mongodb')
     marked = require('marked')
     sanitize = require('mongo-sanitize')
 
-    # Get all news articles
-    app.get('/api/news', (req, res) ->
+    booleanify = (obj) ->
+        for key, value of obj
+            if value == "false"
+                obj[key] = false
+            if value == "true"
+                obj[key] = true
+            if typeof value  == 'object'
+                booleanify(value)
+        return obj
+
+    app.get('/api/v2/news', (req, res) ->
         if !req.requestee
-            return res.status(401).send('access denied')
+            return res.status(401).send({"message": "access denied"})
         db.collection('news').find({}).toArray((err, news) ->
             if err
-                return res.status(500).send('Something went wrong.')
+                return res.status(500).send({"message": "error retrieving news"})
             news.sort((a, b) -> parseInt(a.posted) < parseInt(b.posted))
             res.status(200).send(news.slice(0, 5))
         )
     )
 
-    # Post a new article
-    app.post('/api/news', (req, res) ->
+    app.post('/api/v2/news', (req, res) ->
         if !req.requestee
-            return res.status(401).send('access denied')
+            return res.status(401).send({"message": "access denied"})
         if "admin" not in req.requestee.roles
             if "leader" not in req.requestee.roles
-                return res.status(401).send('access denied')
+                return res.status(401).send({"message": "access denied"})
 
-        news = sanitize(req.body)
+        news = booleanify(sanitize(req.body))
         news.writer = req.requestee._id
         news.posted = parseInt((new Date()).getTime()/1000)
         news.updated = parseInt((new Date()).getTime()/1000)
         db.collection('news').insert(news, (err) ->
             if err
-                res.status(500).send('invalid email/password')
-            else
-                res.status(200).send({
-                    "message": "success"
-                    "event": news
-                })
+                return res.status(500).send({"message": "error inserting news"})
+            return res.status(200).send(news)
         )
         if news.notify
             db.collection('user').find({}).toArray((err, users) -> 
@@ -51,7 +51,6 @@ module.exports = (app, db, mailer) ->
                         emails.push(user.parent1.email)
                     if user.parent2?.email
                         emails.push(user.parent2.email)
-                console.log(emails)
                 mail = {
                     from: '"BAYMS.Web" <bayms.web@gmail.com>',
                     to: ['bayms.web@gmail.com'],
@@ -64,41 +63,40 @@ module.exports = (app, db, mailer) ->
             )
     )
 
-    # Update existing article
-    app.post('/api/news/:news_id', (req, res) ->
+    app.post('/api/v2/news/:news_id', (req, res) ->
         if !req.requestee
-            return res.status(401).send('access denied')
+            return res.status(401).send({"message": "access denied"})
         if "admin" not in req.requestee.roles
             if "leader" not in req.requestee.roles
-                return res.status(401).send('access denied')
+                return res.status(401).send({"message": "access denied"})
 
-        news = sanitize(req.body)
-        delete news._id
+        news = booleanify(sanitize(req.body))
         news.writer = req.requestee._id
         news.updated = parseInt((new Date()).getTime()/1000)
+        delete news._id
+
         db.collection('news').update(
             { _id: new mongo.ObjectID(req.params.news_id)},
             { $set: news },
             (err) ->
                 if (err)
-                    return res.status(500).send('something went wrong')
-                res.status(200).send({message: "success"})
+                    return res.status(500).send({"message": "error editing news"})
+                res.status(200).send(news)
         )
     )
 
-    # Delete existing article
-    app.post('/api/news/:news_id/delete', (req, res) ->
+    app.post('/api/v2/news/:news_id/delete', (req, res) ->
         if !req.requestee
-            return res.status(401).send('access denied')
+            return res.status(401).send({"message": "access denied"})
         if "admin" not in req.requestee.roles
             if "leader" not in req.requestee.roles
-                return res.status(401).send('access denied')
+                return res.status(401).send({"message": "access denied"})
 
         db.collection('news').remove(
             { _id: new mongo.ObjectID(req.params.news_id)},
             (err) ->
                 if (err)
-                    return res.status(500).send('something went wrong')
-                res.status(200).send({message: "success"})
+                    return res.status(500).send({"message": "error editing news"})
+                res.status(200).send({"message": "success"})
         )
     )

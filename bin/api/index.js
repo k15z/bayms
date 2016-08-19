@@ -1,11 +1,3 @@
-
-/*
-Copyright 2016, Kevin Zhang <kevz@mit.edu>
--------------------------------------------------------------------------------
-This is the main entry point for the BAYMS.Web API. It implements a middleware 
-function to authenticate users using the `x-bayms-token` header.
- */
-
 (function() {
   module.exports = function(app) {
     var fs, mailer, mongo, url;
@@ -42,17 +34,16 @@ function to authenticate users using the `x-bayms-token` header.
           return next();
         }
       });
-      app.all('/api', function(req, res) {
-        return res.send({
-          query: req.query,
-          headers: req.headers,
-          requestee: req.requestee
-        });
-      });
+      require('./v2/auth')(app, db, mailer);
+      require('./v2/event')(app, db, mailer);
+      require('./v2/news')(app, db, mailer);
+      require('./v2/user')(app, db, mailer);
+      require('./v2/public')(app, db, mailer);
       require('./routes/auth')(app, db, mailer);
       require('./routes/event')(app, db, mailer);
       require('./routes/news')(app, db, mailer);
-      return require('./routes/user')(app, db, mailer);
+      require('./routes/user')(app, db, mailer);
+      return require('./routes/public')(app, db, mailer);
     });
   };
 

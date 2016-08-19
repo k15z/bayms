@@ -14,6 +14,32 @@ var vm = new Vue({
         };
         window.onhashchange();
 
+        $(window).bind('beforeunload', function(){
+            if (!self.ajax.inprogress)
+                return undefined
+            return "Please give us a moment to save the changes.";
+        });
+        $( document ).ajaxSend(function() {
+            self.ajax.total++;
+            self.ajax.percent = 100.0 * self.ajax.complete / self.ajax.total +  "%";
+        });
+        $( document ).ajaxComplete(function() {
+            self.ajax.complete++;
+            self.ajax.percent = 100.0 * self.ajax.complete / self.ajax.total +  "%";
+        });
+        $( document ).ajaxStart(function() {
+            self.ajax.total = 0;
+            self.ajax.complete = 0;
+            self.ajax.percent = "0%";
+            self.ajax.inprogress = true;
+        });
+        $( document ).ajaxStop(function() {
+            self.ajax.total = 0;
+            self.ajax.complete = 0;
+            self.ajax.percent = "100%";
+            self.ajax.inprogress = false;
+        });
+
         $.get('/api/user')
             .done(function (obj) {
                 if (!obj.picture)
@@ -31,6 +57,12 @@ var vm = new Vue({
     },
     data: {
         ready: false,
+        ajax: {
+            total: 0,
+            complete: 0,
+            percent: "100%",
+            inprogress: false
+        },
         state: {
             tab: "home",
             menu: false,
@@ -193,6 +225,8 @@ var vm = new Vue({
             var self = this
             var eid = self.state.event._id
             target = "/api/event/" + eid + "/piece"
+            if (self.state.piece._id)
+                target += "/" + self.state.piece._id
             $.ajax({
                 method: "POST", 
                 url: target,
@@ -235,6 +269,11 @@ var vm = new Vue({
                         self.loadEvent(self.state.event_id)
                     })
             })
+        },
+        editPiece: function (piece) {
+            var self = this
+            self.overlay = "piece"
+            self.state.piece = piece
         },
         movePieceUp: function (piece_index) {
             var self = this
@@ -285,6 +324,54 @@ var vm = new Vue({
             delete user.picture
             self.state.user = user;
             self.state.overlay = 'user';
+        },
+        printEvent: function () {
+            var self = this;
+            var event_id = self.state.event._id;
+            var printWindow = window.open("/program/" + event_id, "print program");
+            var printAndClose = function () {
+                if (printWindow.document.readyState == 'complete') {
+                    clearInterval(sched);
+                    printWindow.print();
+                }
+            }
+            var sched = setInterval(printAndClose, 200);
+
+        },
+        deleteEvent: function () {
+            var self = this
+            if (!self.state.event._id)
+                return
+            target = "/api/event/"
+            target += self.state.event._id
+            target += "/delete"
+            $.ajax({
+                method: "POST", 
+                url: target
+            }).done(function () {
+                $.get('/api/event')
+                    .done(function (obj) {
+                        self.model.events = obj
+                        self.loadEvent(self.state.event_id)
+                    })
+            })
+        },
+        importPieces: function (src_event_id) {
+            var self = this
+            target = "/api/event/"
+            target += self.state.event._id
+            target += "/import/"
+            target += src_event_id
+            $.ajax({
+                method: "POST", 
+                url: target
+            }).done(function () {
+                $.get('/api/event')
+                    .done(function (obj) {
+                        self.model.events = obj
+                        self.loadEvent(self.state.event_id)
+                    })
+            })
         }
     },
     watch: {

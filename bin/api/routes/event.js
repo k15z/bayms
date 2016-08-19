@@ -21,6 +21,9 @@ leader roles can create/delete events, but any user can create/edit pieces.
         if (value === "false") {
           obj[key] = false;
         }
+        if (value === "true") {
+          obj[key] = true;
+        }
         if (typeof value === 'object') {
           booleanify(value);
         }
@@ -36,8 +39,18 @@ leader roles can create/delete events, but any user can create/edit pieces.
           return res.status(500).send('something went wrong');
         }
         event.sort(function(a, b) {
-          return parseInt(a.start) > parseInt(b.start);
+          return new Date(a.time) > new Date(b.time);
         });
+        return res.status(200).send(booleanify(event));
+      });
+    });
+    app.get('/api/event/:event_id', function(req, res) {
+      return db.collection('event').findOne({
+        _id: new mongo.ObjectID(req.params.event_id)
+      }, function(err, event) {
+        if (err) {
+          return res.status(500).send('something went wrong');
+        }
         return res.status(200).send(booleanify(event));
       });
     });
@@ -77,7 +90,7 @@ leader roles can create/delete events, but any user can create/edit pieces.
           return res.status(401).send('access denied');
         }
       }
-      event = sanitize(req.body);
+      event = booleanify(sanitize(req.body));
       delete event._id;
       if (event.piece) {
         ref = event.piece;
@@ -100,6 +113,45 @@ leader roles can create/delete events, but any user can create/edit pieces.
         return res.status(200).send({
           message: "success",
           event: event
+        });
+      });
+    });
+    app.post('/api/event/:event_id/import/:src_event_id', function(req, res) {
+      var event_id, src_event_id;
+      if (!req.requestee) {
+        return res.status(401).send('access denied');
+      }
+      if (indexOf.call(req.requestee.roles, "admin") < 0) {
+        if (indexOf.call(req.requestee.roles, "leader") < 0) {
+          return res.status(401).send('access denied');
+        }
+      }
+      event_id = new mongo.ObjectID(req.params.event_id);
+      src_event_id = new mongo.ObjectID(req.params.src_event_id);
+      return db.collection('event').findOne({
+        _id: src_event_id
+      }, function(err, src_doc) {
+        var j, len, piece, ref;
+        ref = src_doc.piece;
+        for (j = 0, len = ref.length; j < len; j++) {
+          piece = ref[j];
+          piece._id = new mongo.ObjectID();
+        }
+        return db.collection('event').update({
+          _id: event_id
+        }, {
+          "$push": {
+            "piece": {
+              '$each': src_doc.piece
+            }
+          }
+        }, function(err) {
+          if (err) {
+            return res.status(500).send('something went wrong');
+          }
+          return res.status(200).send({
+            message: "success"
+          });
         });
       });
     });
@@ -131,6 +183,7 @@ leader roles can create/delete events, but any user can create/edit pieces.
       piece = sanitize(req.body);
       piece._id = new mongo.ObjectID();
       piece.approved = "";
+      piece.requestee = req.requestee._id;
       return db.collection('event').update({
         _id: new mongo.ObjectID(req.params.event_id)
       }, {

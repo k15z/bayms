@@ -111,6 +111,29 @@
     <main>
         <br/>
 
+        <div class="row">
+            <div class="col">
+                <h3>Public Members</h3>
+                <ul>
+                    <li v-for="user in model.users">
+                        {{user.name}}
+                    </li>
+                </ul>
+            </div>
+            <div class="col">
+                <h3>Public Events</h3>
+                <ul>
+                    <li v-for="event in model.events">
+                        {{event.type}}
+                        {{event.time}}
+                        {{event.location}}
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <br/><hr/>
+        
         <h3>Upcoming Events</h3>
         <div class="row">
             <div class="col">
@@ -221,6 +244,22 @@
                 scrollTop: $("main").offset().top - 20
             }, 100);
         }
+        var vm = new Vue({
+            el: 'body',
+            data: {
+                model: {
+                    users: [],
+                    events: []
+                }
+            },
+            created: function () {
+                var self = this;
+                $.get('/api/public', function (obj) {
+                    self.model.users = obj.user
+                    self.model.events = obj.event
+                })
+            }
+        })
     </script>
 </body>
 </html>
