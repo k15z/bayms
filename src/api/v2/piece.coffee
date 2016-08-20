@@ -2,6 +2,7 @@
 # Kevin Zhang <kevz@mit.edu>
 module.exports = (app, db, mailer) ->
     mongo = require('mongodb')
+    marked = require('marked')
     sanitize = require('mongo-sanitize')
 
     booleanify = (obj) ->
@@ -97,9 +98,11 @@ module.exports = (app, db, mailer) ->
             (err, doc) ->
                 if (err)
                     return res.status(500).send('something went wrong')
+                user_id = false
                 for i in [0...doc.piece.length]
                     if JSON.stringify(doc.piece[i]._id) == JSON.stringify(req.params.piece_id)
                         doc.piece[i].approved = true
+                        user_id = doc.piece[i].requestee
                 db.collection('event').update(
                     { _id: new mongo.ObjectID(req.params.event_id)},
                     {
@@ -109,6 +112,21 @@ module.exports = (app, db, mailer) ->
                         if (err)
                             return res.status(500).send('something went wrong')
                         res.status(200).send({message: "success"})
+                        db.collection('user').findOne(
+                            { _id: new mongo.ObjectID(user_id)},
+                            (err, user) ->
+                                if user.notification?.approval
+                                    text = "Congratulations, your piece was approved!"
+                                    mail = {
+                                        from: '"BAYMS.Web" <bayms.web@gmail.com>',
+                                        to: ['bayms.web@gmail.com'],
+                                        bcc: user.email,
+                                        subject: (new Date()).toLocaleDateString() + " Piece Approved",
+                                        text: text,
+                                        html: marked(text)
+                                    }
+                                    mailer.sendMail(mail)
+                        )
                 )
         )
     )

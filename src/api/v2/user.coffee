@@ -26,6 +26,7 @@ module.exports = (app, db, mailer, upload) ->
 
         delete req.body._id
         delete req.body.roles
+        delete req.body.hours
         delete req.body.token
         delete req.body.password
 

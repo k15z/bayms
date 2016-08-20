@@ -41,7 +41,33 @@
                 </div>
                 <div v-if="!hasRole('applicant')">
                     <h3>Hello {{model.user.name}}!</h3>
-                    your roles: {{model.user.roles | json}}
+                    <div class="row">
+                        <div class="col">
+                            <div>
+                                <h4>Roles</h4>
+                                {{model.user.roles | json}}
+                            </div>
+                            <br/>
+                            <div>
+                                <h4>Timesheet</h4>
+                                <span v-for="entry in model.user.timesheet">
+                                    <b>{{entry.hours}} hr</b> - {{entry.reason}}<br/>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col form">
+                            <h4>Settings</h4>
+                            <div class="form-item checkboxes">
+                                <label>Would you like to be notified when volunteer hours are credited to your account?</label>
+                                <label><input v-model="model.user.notification.timesheet" type="checkbox"> Timesheet</label>
+                            </div>
+                            <br/>
+                            <div class="form-item checkboxes">
+                                <label>Would you like to be notified when your piece submissions are approved?</label>
+                                <label><input v-model="model.user.notification.approval" type="checkbox"> Piece Approval</label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="tab-view" v-if="state.tab=='profile'">
@@ -273,10 +299,7 @@
                                     </td>
                                     <td v-if="hasRole('admin')"></td>
                                     <td class="form-item" style="padding-left:5px;" v-if="state.piece._id">
-                                        <button class="button outline primary col-12" @click="createPiece()">Save</button>
-                                    </td>
-                                    <td class="form-item" style="padding-left:5px;" v-if="state.piece._id">
-                                        <button class="button outline red col-12" @click="state.piece={}">Cancel</button>
+                                        <button class="button outline primary col-12" @click="state.piece={}">Done</button>
                                     </td>
                                     <td class="form-item" style="padding-left:5px;" v-if="!state.piece._id">
                                         <button class="button outline primary col-12" @click="createPiece()">Submit</button>
@@ -318,6 +341,7 @@
                                 <a @click="setRole(user._id, 'member')">member</a>
                                 <a @click="setRole(user._id, 'alumni')">alumni</a>
                                 <a @click="setRole(user._id, 'applicant')">applicant</a>
+                                <a @click="giveHours(user._id)">give hours</a>
                             </td>
                         </tr>
                     </tbody>
@@ -332,7 +356,10 @@
                 <div class="user-box">
                     {{model.user.email}}
                 </div>
-                <input type="file" accept=".gif,.jpg,.jpeg,.png" style="display:none;"></input>
+                <form id="picture" method="post" enctype="multipart/form-data" action="/api/v2/user/upload">
+                    <input type="hidden" name="user_id" value="{{model.user._id}}"></input>
+                    <input type="file" name="picture" accept=".gif,.jpg,.jpeg,.png" style="display:none;"></input>
+                </form>
                 <div class="text-right">
                     <span class="buttons group">
                         <a type="primary" class="button small outline primary" @click="changePassword()">Change Password</a>

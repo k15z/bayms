@@ -32,6 +32,8 @@ serve both the RESTful API and the website.
 
   app.use(express["static"](path.join(__dirname, './www')));
 
+  app.use('/upload', express["static"](path.join(__dirname, './upload')));
+
   app.get('/app', function(req, res) {
     return res.sendFile(path.join(__dirname, './www/app.html'));
   });

@@ -125,6 +125,21 @@ var vm = new Vue({
                     });
             })
         },
+        giveHours: function (user_id) {
+            var self = this
+            var hours = prompt("How many hours?")
+            var reason = prompt("Why?")
+            if (!hours || !reason)
+                return
+            $.ajax({
+                method: "POST", 
+                url: "/api/v2/user/" + user_id + "/timesheet",
+                data: {
+                    hours: hours,
+                    reason: reason
+                }
+            });
+        },
         parentPassword: function (number) {
             $.ajax({
                 method: "POST", 

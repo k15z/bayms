@@ -42,6 +42,7 @@ module.exports = (app) ->
         require('./v2/event')(app, db, mailer, upload)
         require('./v2/piece')(app, db, mailer, upload)
         require('./v2/news')(app, db, mailer, upload)
-        require('./v2/user')(app, db, mailer, upload)
         require('./v2/public')(app, db, mailer, upload)
+        require('./v2/timesheet')(app, db, mailer, upload)
+        require('./v2/user')(app, db, mailer, upload)
     )

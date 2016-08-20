@@ -105,7 +105,7 @@
         <div class="content">
             <h1>Bay Area Youth Music Society</h1>
             <br/><br/>
-            <img class="down" src="/img/down.png" onclick="scrollDown()"/>
+            <img class="down" src="/img/down.png" @click="scrollDown"/>
         </div>
     </header>
     <main>
@@ -239,11 +239,6 @@
     <script src="/js/kube.js" type="text/javascript"></script>
     <script src="/js/vue.js" type="text/javascript"></script>
     <script>
-        function scrollDown () {
-            $('html, body').animate({
-                scrollTop: $("main").offset().top - 20
-            }, 100);
-        }
         var vm = new Vue({
             el: 'body',
             data: {
@@ -254,10 +249,17 @@
             },
             created: function () {
                 var self = this;
-                $.get('/api/public', function (obj) {
+                $.get('/api/v2/public', function (obj) {
                     self.model.users = obj.user
                     self.model.events = obj.event
                 })
+            },
+            methods: {
+                scrollDown: function () {
+                    $('html, body').animate({
+                        scrollTop: $("main").offset().top - 20
+                    }, 100);
+                }
             }
         })
     </script>

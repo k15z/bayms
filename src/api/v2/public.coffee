@@ -13,7 +13,11 @@ module.exports = (app, db, mailer) ->
         }).toArray((err, users) ->
             for user in users
                 for key, value of user
-                    if key == "name"
+                    if user.waiver?.a and (key == "name")
+                        continue
+                    if user.waiver?.b and (key == "interest" or key == "instruments")
+                        continue
+                    if user.waiver?.c and (key == "biography" or key == "experience")
                         continue
                     delete user[key]
             callback(users)

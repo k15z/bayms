@@ -2,10 +2,26 @@
   var indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   module.exports = function(app, db, mailer) {
-    var marked, mongo, sanitize;
+    var booleanify, marked, mongo, sanitize;
     mongo = require('mongodb');
     marked = require('marked');
     sanitize = require('mongo-sanitize');
+    booleanify = function(obj) {
+      var key, value;
+      for (key in obj) {
+        value = obj[key];
+        if (value === "false") {
+          obj[key] = false;
+        }
+        if (value === "true") {
+          obj[key] = true;
+        }
+        if (typeof value === 'object') {
+          booleanify(value);
+        }
+      }
+      return obj;
+    };
     app.get('/api/v2/news', function(req, res) {
       if (!req.requestee) {
         return res.status(401).send({
@@ -38,7 +54,7 @@
           });
         }
       }
-      news = sanitize(req.body);
+      news = booleanify(sanitize(req.body));
       news.writer = req.requestee._id;
       news.posted = parseInt((new Date()).getTime() / 1000);
       news.updated = parseInt((new Date()).getTime() / 1000);
@@ -90,7 +106,7 @@
           });
         }
       }
-      news = sanitize(req.body);
+      news = booleanify(sanitize(req.body));
       news.writer = req.requestee._id;
       news.updated = parseInt((new Date()).getTime() / 1000);
       delete news._id;

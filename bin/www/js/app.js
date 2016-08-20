@@ -40,7 +40,7 @@ var vm = new Vue({
             self.ajax.inprogress = false;
         });
 
-        $.get('/api/user')
+        $.get('/api/v2/user')
             .done(function (obj) {
                 if (!obj.picture)
                     obj.picture = false
@@ -51,9 +51,9 @@ var vm = new Vue({
                 sessionStorage.clear()
                 window.location.href = "/auth";
             })
-        $.get('/api/news').done(function (obj) { self.model.news = obj; });
-        $.get('/api/event').done(function (obj) { self.model.events = obj; self.state.event_id = obj[0]._id});
-        $.get('/api/user/all').done(function (obj) { self.model.users = obj; });
+        $.get('/api/v2/news').done(function (obj) { self.model.news = obj; });
+        $.get('/api/v2/event').done(function (obj) { self.model.events = obj; self.state.event_id = obj[0]._id});
+        $.get('/api/v2/user/all').done(function (obj) { self.model.users = obj; });
     },
     data: {
         ready: false,
@@ -92,7 +92,7 @@ var vm = new Vue({
             if (pass && pass == prompt("Confirm password:"))
                 $.ajax({
                     method: "POST",
-                    url: "/api/auth/change",
+                    url: "/api/v2/auth/change",
                     data: {
                         password: pass
                     }
@@ -102,19 +102,8 @@ var vm = new Vue({
             var self = this;
             $('input[type=file]').trigger('click');
             $('input[type=file]')[0].onchange = function(evt) {
-                var reader = new FileReader();
-                reader.readAsDataURL(evt.target.files[0]);
-                reader.addEventListener("load", function () {
-                    self.model.user.picture = reader.result;
-                    $.ajax({
-                        method: "POST",
-                        url: "/api/user",
-                        data: {
-                            picture: reader.result
-                        }
-                    });
-                }, false);
                 $('input[type=file]')[0].onchange = false;
+                $("#picture").submit()
             };
         },
         hasRole: function (role, other) {
@@ -128,21 +117,36 @@ var vm = new Vue({
             var self = this;
             $.ajax({
                 method: "POST", 
-                url: "/api/user/" + user_id + "/roles/" + role
+                url: "/api/v2/user/" + user_id + "/roles/" + role
             }).done(function () {
-                $.get('/api/user/all')
+                $.get('/api/v2/user/all')
                     .done(function (obj) { 
                         self.model.users = obj; 
                     });
             })
         },
+        giveHours: function (user_id) {
+            var self = this
+            var hours = prompt("How many hours?")
+            var reason = prompt("Why?")
+            if (!hours || !reason)
+                return
+            $.ajax({
+                method: "POST", 
+                url: "/api/v2/user/" + user_id + "/timesheet",
+                data: {
+                    hours: hours,
+                    reason: reason
+                }
+            });
+        },
         parentPassword: function (number) {
             $.ajax({
                 method: "POST", 
-                url: "/api/auth/parent/" + number,
+                url: "/api/v2/auth/parent/" + number,
                 data:{password:prompt("Parent " + number + " password:")}
             }).done(function () {
-                $.get('/api/user')
+                $.get('/api/v2/user')
                     .done(function (obj) {
                         self.model.user = obj;
                         self.ready = true
@@ -173,7 +177,7 @@ var vm = new Vue({
         },
         postArticle: function () {
             var self = this
-            target = "/api/news/"
+            target = "/api/v2/news/"
             if (self.state.post._id)
                 target += self.state.post._id
             $.ajax({
@@ -182,7 +186,7 @@ var vm = new Vue({
                 data: self.state.post
             }).done(function () {
                 self.state.overlay = false
-                $.get('/api/news')
+                $.get('/api/v2/news')
                     .done(function (obj) {
                         self.model.news = obj
                     })
@@ -194,10 +198,10 @@ var vm = new Vue({
                 return
             $.ajax({
                 method: "POST", 
-                url: "/api/news/" + self.state.post._id + "/delete"
+                url: "/api/v2/news/" + self.state.post._id + "/delete"
             }).done(function () {
                 self.state.overlay = false
-                $.get('/api/news')
+                $.get('/api/v2/news')
                     .done(function (obj) {
                         self.model.news = obj
                     })
@@ -205,7 +209,7 @@ var vm = new Vue({
         },
         createEvent: function (update) {
             var self = this
-            target = "/api/event/"
+            target = "/api/v2/event/"
             if (self.state.event._id)
                 target += self.state.event._id
             $.ajax({
@@ -214,7 +218,7 @@ var vm = new Vue({
                 data: self.state.event
             }).done(function () {
                 if (update)
-                    $.get('/api/event')
+                    $.get('/api/v2/event')
                         .done(function (obj) {
                             self.model.events = obj
                             self.loadEvent(self.state.event_id)
@@ -224,7 +228,7 @@ var vm = new Vue({
         createPiece: function () {
             var self = this
             var eid = self.state.event._id
-            target = "/api/event/" + eid + "/piece"
+            target = "/api/v2/event/" + eid + "/piece"
             if (self.state.piece._id)
                 target += "/" + self.state.piece._id
             $.ajax({
@@ -232,7 +236,7 @@ var vm = new Vue({
                 url: target,
                 data: self.state.piece
             }).done(function () {
-                $.get('/api/event')
+                $.get('/api/v2/event')
                     .done(function (obj) {
                         self.state.piece = {}
                         self.model.events = obj
@@ -245,9 +249,9 @@ var vm = new Vue({
             var eid = self.state.event._id
             $.ajax({
                 method: "POST", 
-                url: "/api/event/" + eid + "/piece/" + pid + "/approve"
+                url: "/api/v2/event/" + eid + "/piece/" + pid + "/approve"
             }).done(function () {
-                $.get('/api/event')
+                $.get('/api/v2/event')
                     .done(function (obj) {
                         self.state.piece = {}
                         self.model.events = obj
@@ -260,9 +264,9 @@ var vm = new Vue({
             var eid = self.state.event._id
             $.ajax({
                 method: "POST", 
-                url: "/api/event/" + eid + "/piece/" + pid + "/disapprove",
+                url: "/api/v2/event/" + eid + "/piece/" + pid + "/disapprove",
             }).done(function () {
-                $.get('/api/event')
+                $.get('/api/v2/event')
                     .done(function (obj) {
                         self.state.piece = {}
                         self.model.events = obj
@@ -298,9 +302,9 @@ var vm = new Vue({
             var eid = self.state.event._id
             $.ajax({
                 method: "POST", 
-                url: "/api/event/" + eid + "/piece/" + pid + "/delete",
+                url: "/api/v2/event/" + eid + "/piece/" + pid + "/delete",
             }).done(function () {
-                $.get('/api/event')
+                $.get('/api/v2/event')
                     .done(function (obj) {
                         self.state.piece = {}
                         self.model.events = obj
@@ -342,23 +346,24 @@ var vm = new Vue({
             var self = this
             if (!self.state.event._id)
                 return
-            target = "/api/event/"
+            target = "/api/v2/event/"
             target += self.state.event._id
             target += "/delete"
             $.ajax({
                 method: "POST", 
                 url: target
             }).done(function () {
-                $.get('/api/event')
+                $.get('/api/v2/event')
                     .done(function (obj) {
                         self.model.events = obj
+                        self.state.event_id = obj[0]._id
                         self.loadEvent(self.state.event_id)
                     })
             })
         },
         importPieces: function (src_event_id) {
             var self = this
-            target = "/api/event/"
+            target = "/api/v2/event/"
             target += self.state.event._id
             target += "/import/"
             target += src_event_id
@@ -366,7 +371,7 @@ var vm = new Vue({
                 method: "POST", 
                 url: target
             }).done(function () {
-                $.get('/api/event')
+                $.get('/api/v2/event')
                     .done(function (obj) {
                         self.model.events = obj
                         self.loadEvent(self.state.event_id)
@@ -386,7 +391,7 @@ var vm = new Vue({
                 var self = this;
                 $.ajax({
                     method: "POST",
-                    url: "/api/user",
+                    url: "/api/v2/user",
                     data: self.model.user
                 });
             }

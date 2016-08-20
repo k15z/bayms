@@ -1,9 +1,13 @@
 (function() {
   module.exports = function(app) {
-    var fs, mailer, mongo, url;
+    var fs, mailer, mongo, multer, upload, url;
     fs = require('fs');
     mongo = require('mongodb').MongoClient;
     mailer = require('nodemailer').createTransport(fs.readFileSync(__dirname + "/../../smtps.auth", "utf8"));
+    multer = require('multer');
+    upload = multer({
+      dest: __dirname + "/../upload/"
+    });
     url = 'mongodb://localhost:27017/bayms-web';
     return mongo.connect(url, function(err, db) {
       if (err) {
@@ -34,16 +38,13 @@
           return next();
         }
       });
-      require('./v2/auth')(app, db, mailer);
-      require('./v2/event')(app, db, mailer);
-      require('./v2/news')(app, db, mailer);
-      require('./v2/user')(app, db, mailer);
-      require('./v2/public')(app, db, mailer);
-      require('./routes/auth')(app, db, mailer);
-      require('./routes/event')(app, db, mailer);
-      require('./routes/news')(app, db, mailer);
-      require('./routes/user')(app, db, mailer);
-      return require('./routes/public')(app, db, mailer);
+      require('./v2/auth')(app, db, mailer, upload);
+      require('./v2/event')(app, db, mailer, upload);
+      require('./v2/piece')(app, db, mailer, upload);
+      require('./v2/news')(app, db, mailer, upload);
+      require('./v2/public')(app, db, mailer, upload);
+      require('./v2/timesheet')(app, db, mailer, upload);
+      return require('./v2/user')(app, db, mailer, upload);
     });
   };
 
