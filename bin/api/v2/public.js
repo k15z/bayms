@@ -19,6 +19,9 @@
           user = users[i];
           for (key in user) {
             value = user[key];
+            if (key === "waiver") {
+              continue;
+            }
             if (((ref = user.waiver) != null ? ref.a : void 0) && (key === "name")) {
               continue;
             }

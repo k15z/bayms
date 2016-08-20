@@ -5,7 +5,7 @@ var jshint = require('gulp-jshint');
 var coffeelint = require('gulp-coffeelint');
 
 gulp.task('clean', function () {
-    return del('./bin');
+//    return del('./bin');
 });
 
 gulp.task('build', ['clean'] , function() {

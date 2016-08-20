@@ -1,4 +1,5 @@
 Vue.config.debug = true
+Vue.use(VueCharts);
 var vm = new Vue({
     el: "body",
     created: function () {
@@ -80,6 +81,39 @@ var vm = new Vue({
             news: [],
             events: [],
             users: []
+        }
+    },
+    computed: {
+        timesheetRows: function () {
+            var rows = []
+            var timesheet = this.model.user.timesheet
+            for (var i = 0; i < timesheet.length; i++)
+                if (timesheet[i].updated) {
+                    var date = (new Date(parseInt(timesheet[i].updated*1000))).toLocaleDateString()
+                    var hours = parseInt(timesheet[i].hours)
+                    rows.push([date, hours])
+                }
+            console.log(rows)
+            return rows
+        },
+        timesheetColumns: function () {
+            return [{
+                    'type': 'string',
+                    'label': 'Date'
+                }, {
+                    'type': 'number',
+                    'label': 'Hours'
+                }]
+        },
+        timesheetOptions: function () {
+            return {
+                hAxis: {
+                    title: 'Date'
+                },
+                vAxis: {
+                    title: 'Hours'
+                }
+            }
         }
     },
     methods: {
@@ -191,6 +225,44 @@ var vm = new Vue({
                         self.model.news = obj
                     })
             })
+        },
+        totalHours: function (timesheet) {
+            var hours = 0
+            for (var i = 0; i < timesheet.length; i++) 
+                hours += parseFloat(timesheet[i].hours)
+            return hours
+        },
+        computeAge: function (birthday) {
+            ms = ((new Date()) - (new Date(birthday)))
+            yr = ms / (1000 * 60 * 60 * 24 * 365)
+            return parseInt(yr)
+        },
+        awardDescription: function (hours, age) {
+            if (5 <= age && age <= 10) {
+                if (hours >= 75)
+                    return "gold"
+                if (hours >= 50)
+                    return "silver"
+                if (hours >= 26)
+                    return "bronze"
+            }
+            if (11 <= age && age <= 15) {
+                if (hours >= 100)
+                    return "gold"
+                if (hours >= 75)
+                    return "silver"
+                if (hours >= 50)
+                    return "bronze"
+            }
+            if (16 <= age && age <= 25) {
+                if (hours >= 250)
+                    return "gold"
+                if (hours >= 175)
+                    return "silver"
+                if (hours >= 100)
+                    return "bronze"
+            }
+            return "nothing"
         },
         deleteArticle: function () {
             var self = this
@@ -411,5 +483,7 @@ var vm = new Vue({
             }
         }
     }
-})
-;
+});
+jQuery(window).resize(function () {
+    vm.$broadcast('redrawChart');
+});

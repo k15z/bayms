@@ -89,6 +89,23 @@ module.exports = (app, db, mailer) ->
                                 "auth_token": generateToken(user, req.headers)
                             })
                     )
+
+                    db.collection('user').find({
+                        "notification.application": true
+                    }).toArray((err, users) ->
+                        emails = []
+                        for user in users
+                            emails.push(user.email)
+                        message = "#{user.email} applied for an account"
+                        mailer.sendMail({
+                            from: '"BAYMS.Web" <bayms.web@gmail.com>'
+                            to: ["bayms.web@gmail.com"]
+                            bcc: emails
+                            subject: "Application Received"
+                            html: marked(message)
+                            text: message
+                        })
+                    )
                 )
         )
     )

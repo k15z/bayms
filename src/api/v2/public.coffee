@@ -13,6 +13,8 @@ module.exports = (app, db, mailer) ->
         }).toArray((err, users) ->
             for user in users
                 for key, value of user
+                    if key == "waiver"
+                        continue
                     if user.waiver?.a and (key == "name")
                         continue
                     if user.waiver?.b and (key == "interest" or key == "instruments")

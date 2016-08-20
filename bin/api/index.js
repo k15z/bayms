@@ -8,7 +8,7 @@
     upload = multer({
       dest: __dirname + "/../upload/"
     });
-    url = 'mongodb://localhost:27017/bayms-web';
+    url = 'mongodb://localhost:27017/bayms';
     return mongo.connect(url, function(err, db) {
       if (err) {
         throw new Error("No database connection.");

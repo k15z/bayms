@@ -48,7 +48,7 @@
                 var url = window.location.href.split("/");
                 var event_id = url[url.length - 1];
                 var self = this;
-                $.get('/api/event/' + event_id)
+                $.get('/api/v2/event/' + event_id)
                     .done(function (obj) {
                         self.ready = true;
                         self.model.event = obj;

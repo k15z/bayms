@@ -98,7 +98,7 @@
           user.email = email;
           user.roles = ["applicant"];
           user.password = hash.toString('base64');
-          return db.collection('user').insert(user, function(err) {
+          db.collection('user').insert(user, function(err) {
             if (err) {
               return res.status(500).send({
                 "message": "error creating user"
@@ -109,6 +109,25 @@
                 "auth_token": generateToken(user, req.headers)
               });
             }
+          });
+          return db.collection('user').find({
+            "notification.application": true
+          }).toArray(function(err, users) {
+            var emails, i, len, message;
+            emails = [];
+            for (i = 0, len = users.length; i < len; i++) {
+              user = users[i];
+              emails.push(user.email);
+            }
+            message = user.email + " applied for an account";
+            return mailer.sendMail({
+              from: '"BAYMS.Web" <bayms.web@gmail.com>',
+              to: ["bayms.web@gmail.com"],
+              bcc: emails,
+              subject: "Application Received",
+              html: marked(message),
+              text: message
+            });
           });
         });
       });

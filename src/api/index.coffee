@@ -8,7 +8,7 @@ module.exports = (app) ->
     multer = require('multer')
     upload = multer({ dest: __dirname + "/../upload/" })
 
-    url = 'mongodb://localhost:27017/bayms-web'
+    url = 'mongodb://localhost:27017/bayms'
     mongo.connect(url, (err, db) ->
         if err
             throw new Error("No database connection.")
