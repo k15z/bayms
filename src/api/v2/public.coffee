@@ -19,7 +19,7 @@ module.exports = (app, db, mailer) ->
                         continue
                     if user.waiver?.b and (key == "interest" or key == "instruments")
                         continue
-                    if user.waiver?.c and (key == "biography" or key == "experience")
+                    if user.waiver?.c and (key == "picture" or key == "biography" or key == "experience")
                         continue
                     delete user[key]
             callback(users)

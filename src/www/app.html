@@ -25,22 +25,16 @@
                     <span v-if="hasRole('applicant')">Application</span>
                     <span v-if="!hasRole('applicant')">Profile</span>
                 </div>
-                <div class="tab-item" @click="state.tab='events'" :class="{active:state.tab=='events'}" v-if="model.user.roles.indexOf('applicant') == -1">
+                <div class="tab-item" @click="state.tab='events'" :class="{active:state.tab=='events'}">
                     Events
                 </div>
-                <div class="tab-item" @click="state.tab='members'" :class="{active:state.tab=='members'}" v-if="model.user.roles.indexOf('applicant') == -1">
+                <div class="tab-item" @click="state.tab='members'" :class="{active:state.tab=='members'}">
                     Members
                 </div>
             </div>
             <div class="tab-view" v-if="state.tab=='home'">
-                <div v-if="hasRole('applicant')">
-                    <h3>Hello applicant!</h3>
-                    <p>
-                        some random welcome thing, go fill out your application, blah blah blah
-                    </p>
-                </div>
-                <div v-if="!hasRole('applicant')">
-                    <h3>Hello {{model.user.name}}!</h3>
+                <div>
+                    <h3>Hello {{model.user.name}}! You are an {{model.user.roles}}.</h3>
                     <div class="row">
                         <div class="col">
                             <h4 class="subtitle muted">Timesheet</h4>
@@ -57,6 +51,15 @@
                             <vue-chart style="font-size: 0.8em;" :columns="timesheetColumns" :rows="timesheetRows" :options="timesheetOptions" chart-type="AreaChart"></vue-chart>
                         </div>
                     </div>
+                    <h4 class="subtitle muted">Calendar</h4>
+                    <div class="row">
+                        <div class="col" v-for="event in model.events">
+                            {{event.type}}<br/>
+                            {{event.location}}<br/>
+                            {{event.time}}
+                        </div>
+                    </div>
+                    <br/>
                     <h4 class="subtitle muted">Settings</h4>
                     <div class="row">
                         <div class="col form">
@@ -137,7 +140,7 @@
                             <label>Phone</label>
                             <input v-model="model.user.parent1.phone" type="text" debounce="500">
                         </div>
-                        <div class="form-item">
+                        <div class="form-item" v-if="model.user.is_parent">
                             <button @click="parentPassword(1)" class="col-12">Set Parent 1 Password</button>
                         </div>
                     </div>
@@ -154,7 +157,7 @@
                             <label>Phone</label>
                             <input v-model="model.user.parent2.phone" type="text" debounce="500">
                         </div>
-                        <div class="form-item">
+                        <div class="form-item" v-if="model.user.is_parent">
                             <button @click="parentPassword(2)" class="col-12">Set Parent 2 Password</button>
                         </div>
                     </div>
@@ -216,32 +219,43 @@
                                         <a href="{{state.event.media}}">watch</a>
                                     </span>
                                 </h4>
+                                <p>
+                                    {{state.event.notes}}
+                                </p>
                                 <div v-if="hasRole('admin')">
                                     <label><input v-model="state.event.visible.members" type="checkbox"> Visible to members</label>
                                     <label><input v-model="state.event.visible.public" type="checkbox"> Visible to public</label>
                                 </div>
                             </div>
                             <div class="col" v-if="hasRole('admin')">
-                                <div class="form-item">
-                                    <label>Type</label>
-                                    <select v-model="state.event.type">
-                                        <option>Community Service</option>
-                                        <option>Charity Concert</option>
-                                    </select>
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="form-item">
+                                            <label>Type</label>
+                                            <select v-model="state.event.type">
+                                                <option>Community Service</option>
+                                                <option>Charity Concert</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-item">
+                                            <label>Media Link</label>
+                                            <input v-model="state.event.media" type="text" placeholder="https://www.youtube.com/asdfadsf">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-item">
+                                            <label>Location</label>
+                                            <input v-model="state.event.location" type="text" placeholder="Lytton Gardens">
+                                        </div>
+                                        <div class="form-item">
+                                            <label>Date + Time</label>
+                                            <input v-model="state.event.time" type="text" placeholder="7:00 PM 01/01/1996">
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="form-item">
-                                    <label>Media Link</label>
-                                    <input v-model="state.event.media" type="text" placeholder="https://www.youtube.com/asdfadsf">
-                                </div>
-                            </div>
-                            <div class="col" v-if="hasRole('admin')">
-                                <div class="form-item">
-                                    <label>Location</label>
-                                    <input v-model="state.event.location" type="text" placeholder="Lytton Gardens">
-                                </div>
-                                <div class="form-item">
-                                    <label>Date + Time</label>
-                                    <input v-model="state.event.time" type="text" placeholder="7:00 PM 01/01/1996">
+                                    <label>Notes</label>
+                                    <textarea v-model="state.event.notes"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -338,6 +352,7 @@
                         <tr>
                             <th>Name</th>
                             <th>Email</th>
+                            <th>Phone</th>
                             <th>Roles</th>
                             <th v-if="hasRole('admin')">Actions</th>
                         </tr>
@@ -346,6 +361,7 @@
                         <tr v-for="user in model.users">
                             <td><a @click="showUser(user)">{{user.name}}</a></td>
                             <td>{{user.email}}</td>
+                            <td>{{user.phone}}</td>
                             <td>{{user.roles}}</td>
                             <td v-if="hasRole('admin')">
                                 make 
@@ -354,6 +370,7 @@
                                 <a @click="setRole(user._id, 'alumni')">alumni</a>
                                 <a @click="setRole(user._id, 'applicant')">applicant</a>
                                 <a @click="giveHours(user._id)">give hours</a>
+                                <a @click="deleteUser(user._id)">delete</a>
                             </td>
                         </tr>
                     </tbody>
@@ -416,7 +433,8 @@
         </div>
         <div class="text-center" v-if="hasRole('admin')">
             <div v-if="!state.post._id">
-                <label><input v-model="state.post.notify" type="checkbox"> Email Notification</label>
+                <label><input v-model="state.post.notification.active" type="checkbox"> Notify Active</label>
+                <label><input v-model="state.post.notification.alumni" type="checkbox"> Notify Alumni</label>
                 <br/>
             </div>
             <button v-if="!state.post._id" class="button small outline" @click="postArticle()">Post Article</button>

@@ -79,6 +79,22 @@ module.exports = (app, db, mailer, upload) ->
         )
     )
 
+    app.post('/api/v2/user/:user_id/delete/', (req, res) ->
+        if !req.requestee
+            return res.status(401).send({"message": "access denied"})
+        if not "admin" in req.requestee?.roles
+            return res.status(401).send({"message": "access denied"})
+
+        user_id = new mongo.ObjectID(req.params.user_id)
+        db.collection('user').remove(
+            { _id: user_id},
+            (err, num_deleted) ->
+                if (err)
+                    return res.status(500).send({"message": "error setting roles"})
+                res.status(200).send({"message": "success"})
+        )
+    )
+
     app.post('/api/v2/user/:user_id/roles/:role', (req, res) ->
         if !req.requestee
             return res.status(401).send({"message": "access denied"})

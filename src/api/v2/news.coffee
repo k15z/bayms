@@ -42,8 +42,19 @@ module.exports = (app, db, mailer) ->
                 return res.status(500).send({"message": "error inserting news"})
             return res.status(200).send(news)
         )
-        if news.notify
-            db.collection('user').find({}).toArray((err, users) -> 
+
+        # send email notifications
+        mail = {
+            from: '"BAYMS.Web" <bayms.web@gmail.com>',
+            to: ['bayms.web@gmail.com'],
+            subject: news.title,
+            text: news.content,
+            html: marked(news.content)
+        }
+        if news.notification?.active
+            db.collection('user').find({
+                roles: {$nin: ["alumni"]}
+            }).toArray((err, users) -> 
                 emails = []
                 for user in users
                     emails.push(user.email)
@@ -51,14 +62,21 @@ module.exports = (app, db, mailer) ->
                         emails.push(user.parent1.email)
                     if user.parent2?.email
                         emails.push(user.parent2.email)
-                mail = {
-                    from: '"BAYMS.Web" <bayms.web@gmail.com>',
-                    to: ['bayms.web@gmail.com'],
-                    bcc: emails,
-                    subject: news.title,
-                    text: news.content,
-                    html: marked(news.content)
-                }
+                mail.bcc = emails
+                mailer.sendMail(mail)
+            )
+        if news.notification?.alumni
+            db.collection('user').find({
+                roles: {$in: ["alumni"]}
+            }).toArray((err, users) -> 
+                emails = []
+                for user in users
+                    emails.push(user.email)
+                    if user.parent1?.email
+                        emails.push(user.parent1.email)
+                    if user.parent2?.email
+                        emails.push(user.parent2.email)
+                mail.bcc = emails
                 mailer.sendMail(mail)
             )
     )

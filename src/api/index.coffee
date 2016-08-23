@@ -32,6 +32,12 @@ module.exports = (app) ->
                 }).toArray((err, user) ->
                     if (!err && user.length == 1)
                         req.requestee = user[0]
+                        for token in user[0].token
+                            if token.value == req.headers['x-bayms-token']
+                                req.requestee.is_parent = token.is_parent
+                        has_parent_password = user[0].parent1?.password?
+                        if not has_parent_password
+                            req.requestee.is_parent = true
                     next()
                 )
             else

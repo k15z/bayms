@@ -174,7 +174,20 @@ var vm = new Vue({
                 }
             });
         },
+        deleteUser: function (user_id) {
+            var self = this
+            $.ajax({
+                method: "POST", 
+                url: "/api/v2/user/" + user_id + "/delete"
+            }).done(function () {
+                $.get('/api/v2/user/all')
+                    .done(function (obj) {
+                        self.model.users = obj;
+                    });
+            });
+        },
         parentPassword: function (number) {
+            var self = this;
             $.ajax({
                 method: "POST", 
                 url: "/api/v2/auth/parent/" + number,

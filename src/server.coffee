@@ -1,9 +1,5 @@
-###
-Copyright 2016, Kevin Zhang <kevz@mit.edu>
--------------------------------------------------------------------------------
-This creates an instance of the Express web server on port 3000 and uses it to
-serve both the RESTful API and the website.
-###
+# Copyright 2016, All Rights Reserverd
+# Kevin Zhang <kevz@mit.edu>
 
 path = require('path')
 express = require('express')

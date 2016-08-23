@@ -199,17 +199,11 @@
 
         <h3>Members</h3>
         <div class="row">
-            <div class="col">
-                <img src="http://placehold.it/300x200"/>
-            </div>
-            <div class="col">
-                <img src="http://placehold.it/300x200"/>
-            </div>
-            <div class="col">
-                <img src="http://placehold.it/300x200"/>
-            </div>
-            <div class="col">
-                <img src="http://placehold.it/300x200"/>
+            <div class="col" v-for="user in model.users" v-if="user.picture">
+                <img :src="user.picture"/>
+                <div v-if="user.biography">
+                    {{user.biography}}
+                </div>
             </div>
         </div>
 

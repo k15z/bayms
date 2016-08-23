@@ -1,4 +1,5 @@
 /node_modules
 /src/upload
 /bin/upload
+/bin
 smtps.auth
