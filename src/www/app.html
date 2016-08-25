@@ -39,11 +39,11 @@
                         <div class="col">
                             <h4 class="subtitle muted">Timesheet</h4>
                             <p>
-                                I might be calculating this wrong but you have earned <b>{{totalHours(model.user.timesheet)}}
+                                I might be calculating this wrong but you have earned <b>{{totalHours(model.user.timesheet.history)}}
                                 hours</b> of community service this year, and you are <b>{{computeAge(model.user.birthday)}} 
                                 years </b> old so I believe you are eligible for 
                                 <b>
-                                    {{awardDescription(totalHours(model.user.timesheet), computeAge(model.user.birthday))}}
+                                    {{awardDescription(totalHours(model.user.timesheet.history), computeAge(model.user.birthday))}}
                                 </b>.
                             </p>
                         </div>
@@ -51,34 +51,29 @@
                             <vue-chart style="font-size: 0.8em;" :columns="timesheetColumns" :rows="timesheetRows" :options="timesheetOptions" chart-type="AreaChart"></vue-chart>
                         </div>
                     </div>
-                    <h4 class="subtitle muted">Calendar</h4>
                     <div class="row">
-                        <div class="col" v-for="event in model.events">
-                            {{event.type}}<br/>
-                            {{event.location}}<br/>
-                            {{event.time}}
-                        </div>
-                    </div>
-                    <br/>
-                    <h4 class="subtitle muted">Settings</h4>
-                    <div class="row">
-                        <div class="col form">
-                            <div class="form-item checkboxes">
-                                <label>Would you like to be notified when volunteer hours are granted?</label>
-                                <label><input v-model="model.user.notification.timesheet" type="checkbox"> Timesheet</label>
+                        <div class="col">
+                            <h4 class="subtitle muted">Calendar</h4>
+                            <div v-for="event in model.events">
+                                {{event.type}}<br/>
+                                {{event.location}}<br/>
+                                {{event.time}}<br/>
+                                <br/>
                             </div>
                         </div>
-                        <div class="col form">
+                        <div class="col">
+                            <h4 class="subtitle muted">Settings</h4>
                             <div class="form-item checkboxes">
-                                <label>Would you like to be notified when your piece submissions are approved?</label>
-                                <label><input v-model="model.user.notification.approval" type="checkbox"> Piece Approval</label>
+                                <label><input v-model="model.user.notification.timesheet" type="checkbox"> Notify me when volunteer hours are granted.</label>
                             </div>
-                        </div>
-                        <div class="col form" v-if="hasRole('admin')">
+                            <br/>
                             <div class="form-item checkboxes">
-                                <label>Would you like to be notified when people apply?</label>
-                                <label><input v-model="model.user.notification.application" type="checkbox"> Applications</label>
+                                <label><input v-model="model.user.notification.approval" type="checkbox"> Notify me when my pieces are approved.</label>
                             </div>
+                            <br/>
+                            <div class="form-item checkboxes" v-if="hasRole('admin')">
+                                <label><input v-model="model.user.notification.application" type="checkbox"> Notify me when people apply.</label>
+                            </div>                        
                         </div>
                     </div>
                 </div>
@@ -347,6 +342,9 @@
                 </div>
             </div>
             <div class="tab-view" v-if="state.tab=='members'">
+                <div style="margin-bottom:6px;">
+                    <input v-model="state.search" type="text" class="col-12" placeholder="search..."></input>
+                </div>
                 <table class="flat">
                     <thead>
                         <tr>
@@ -358,19 +356,20 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="user in model.users">
-                            <td><a @click="showUser(user)">{{user.name}}</a></td>
+                        <tr v-for="user in model.users | filterBy state.search">
+                            <td @click="showUser(user)"><a @click="showUser(user)">{{user.name}}</a></td>
                             <td>{{user.email}}</td>
                             <td>{{user.phone}}</td>
                             <td>{{user.roles}}</td>
                             <td v-if="hasRole('admin')">
-                                make 
                                 <a @click="setRole(user._id, 'admin')">admin</a>
                                 <a @click="setRole(user._id, 'member')">member</a>
                                 <a @click="setRole(user._id, 'alumni')">alumni</a>
                                 <a @click="setRole(user._id, 'applicant')">applicant</a>
-                                <a @click="giveHours(user._id)">give hours</a>
+                                 |
                                 <a @click="deleteUser(user._id)">delete</a>
+                                 | 
+                                <a @click="giveHours(user._id)">give hours</a>
                             </td>
                         </tr>
                     </tbody>
@@ -445,6 +444,7 @@
     <div v-if="state.overlay=='user'" class="news modal">
         <div class="close" @click="state.overlay=false"></div>
         <h3>{{state.user.name}}</h3>
+        <img v-if="state.user.picture" :src="state.user.picture"/>
         <ul>
             <li v-for="(key, value) in state.user" v-if="key!='salt' && key !='password'">
                 <b>{{key}}:</b> 

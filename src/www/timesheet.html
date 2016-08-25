@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BAYMS</title>
+    <meta name="viewport" content="width=device-width">
+    <link href="/img/favicon.png" rel="icon"/>
+    <link href="/css/kube.css" rel="stylesheet"/>
+    <link href="/css/base.css" rel="stylesheet"/>
+    <link href="/css/core.css" rel="stylesheet"/>
+    <link href="/css/app.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css?family=Raleway|Taviraj" rel="stylesheet">
+    <style>
+        body {
+            padding: 5px;
+        }
+    </style>
+</head>
+<body v-cloak>
+    <input v-model="state.query" type="text" class="col-12" placeholder="search..." />
+    <table>
+        <tr v-for="user in model.users | filterBy state.query">
+            <td style="width:200px;">
+                <div style="position:relative;width:200px;height:180px;background:url('{{user.picture}}');background-size:cover;background-color:#333;">
+                    <div style="position:absolute;top:0;bottom:0;left:0;right:0;padding:5px;">
+                        <h4 style="color:white;">
+                            {{user.name}} <br/>
+                            {{user.email}} <br/>
+                            {{user.roles}}
+                        </h4>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <button @click="start(user._id)" v-if="!user.timesheet.active" class="button primary outline">Start Tracking</button>
+                <button @click="stop(user._id)" v-if="user.timesheet.active" class="button red outline">Stop Tracking</button>
+            </td>
+            <td>
+                <div v-if="user.timesheet.active">
+                    Started at: {{timeString(user.timesheet.unixtime)}}
+                    <br/>
+                    {{Math.round((currentTime - user.timesheet.unixtime) / 60)}} minutes elapsed
+                    <br/>
+                    {{user.timesheet.reason | json}}
+                </div>
+            </td>
+        </tr>
+    </table>
+    <script src="/js/vue.js" type="text/javascript"></script>
+    <script src="/js/jquery.js" type="text/javascript"></script>
+    <script src="/js/ajax.js" type="text/javascript"></script>
+    <script src="/js/sortable.js" type="text/javascript"></script>
+    <script src="/js/vue-sortable.js" type="text/javascript"></script>
+    <script>
+        var vm = new Vue({
+            el: "body",
+            data: {
+                ready: false,
+                state: {
+                    query: "",
+                    reason: ""
+                },
+                model: {
+                    users: [],
+                    events: []
+                },
+            },
+            created: function () {
+                var self = this;
+                $.get('/api/v2/user')
+                    .done(function (obj) {
+                        self.ready = true;
+                        if (obj.roles.indexOf("admin") == -1) {
+                            alert("Sorry, you don't have permission to access this page.")
+                            window.location.href = "/";
+                        }
+                    })
+                    .fail(function (err) {
+                        window.location.href = "/";
+                    })
+                $.get('/api/v2/user/all')
+                    .done(function (obj) {
+                        self.model.users = obj;
+                    })
+                $.get('/api/v2/event/')
+                    .done(function (obj) {
+                        self.model.events = obj;
+                    })
+            },
+            methods: {
+                start: function (user_id) {
+                    var self = this
+                    var reason = prompt("Why?")
+                    if (!reason)
+                        return
+                    $.ajax({
+                        method: "POST", 
+                        url: "/api/v2/user/" + user_id + "/timesheet/active",
+                        data: {
+                            reason: reason
+                        }
+                    }).done(function () {
+                        $.get('/api/v2/user/all')
+                            .done(function (obj) { 
+                                self.model.users = obj; 
+                            });
+                    })
+                },
+                stop: function (user_id) {
+                    var self = this
+                    $.ajax({
+                        method: "POST", 
+                        url: "/api/v2/user/" + user_id + "/timesheet/inactive"
+                    }).done(function () {
+                        $.get('/api/v2/user/all')
+                            .done(function (obj) { 
+                                self.model.users = obj; 
+                            });
+                    })
+                },
+                timeString: function (unix) {
+                    return (new Date(unix * 1000)).toLocaleTimeString();
+                }
+            },
+            computed: {
+                currentTime: function () {
+                    return Math.round((new Date()).getTime() / 1000)
+                }
+            }
+        });
+    </script>
+</body>
+</html>

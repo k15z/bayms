@@ -86,6 +86,7 @@ module.exports = (app, db, mailer) ->
                     user.email = email
                     user.roles = ["applicant"]
                     user.password = hash.toString('base64')
+                    user.timesheet = {active: false}
 
                     db.collection('user').insert(user, (err) ->
                         if err

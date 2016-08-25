@@ -86,14 +86,13 @@ var vm = new Vue({
     computed: {
         timesheetRows: function () {
             var rows = []
-            var timesheet = this.model.user.timesheet
-            for (var i = 0; i < timesheet.length; i++)
-                if (timesheet[i].updated) {
-                    var date = (new Date(parseInt(timesheet[i].updated*1000))).toLocaleDateString()
-                    var hours = parseInt(timesheet[i].hours)
+            var history = this.model.user.timesheet.history
+            for (var i = 0; i < history.length; i++)
+                if (history[i].reported_on) {
+                    var date = (new Date(parseInt(history[i].reported_on*1000))).toLocaleDateString()
+                    var hours = parseInt(history[i].time) / (60*60)
                     rows.push([date, hours])
                 }
-            console.log(rows)
             return rows
         },
         timesheetColumns: function () {
@@ -167,12 +166,42 @@ var vm = new Vue({
                 return
             $.ajax({
                 method: "POST", 
-                url: "/api/v2/user/" + user_id + "/timesheet",
+                url: "/api/v2/user/" + user_id + "/timesheet/history",
                 data: {
-                    hours: hours,
+                    time: hours*60*60,
                     reason: reason
                 }
             });
+        },
+        startHours: function (user_id) {
+            var self = this
+            var reason = prompt("Why?")
+            if (!reason)
+                return
+            $.ajax({
+                method: "POST", 
+                url: "/api/v2/user/" + user_id + "/timesheet/active",
+                data: {
+                    reason: reason
+                }
+            }).done(function () {
+                $.get('/api/v2/user/all')
+                    .done(function (obj) { 
+                        self.model.users = obj; 
+                    });
+            })
+        },
+        stopHours: function (user_id) {
+            var self = this
+            $.ajax({
+                method: "POST", 
+                url: "/api/v2/user/" + user_id + "/timesheet/inactive"
+            }).done(function () {
+                $.get('/api/v2/user/all')
+                    .done(function (obj) { 
+                        self.model.users = obj; 
+                    });
+            })
         },
         deleteUser: function (user_id) {
             var self = this
@@ -239,11 +268,11 @@ var vm = new Vue({
                     })
             })
         },
-        totalHours: function (timesheet) {
+        totalHours: function (history) {
             var hours = 0
-            for (var i = 0; i < timesheet.length; i++) 
-                hours += parseFloat(timesheet[i].hours)
-            return hours
+            for (var i = 0; i < history.length; i++) 
+                hours += parseFloat(history[i].time) / (60*60)
+            return Math.round(hours)
         },
         computeAge: function (birthday) {
             ms = ((new Date()) - (new Date(birthday)))
@@ -409,8 +438,6 @@ var vm = new Vue({
         },
         showUser: function (user) {
             var self = this;
-            delete user.token
-            delete user.picture
             self.state.user = user;
             self.state.overlay = 'user';
         },

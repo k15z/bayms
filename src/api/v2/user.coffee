@@ -26,9 +26,9 @@ module.exports = (app, db, mailer, upload) ->
 
         delete req.body._id
         delete req.body.roles
-        delete req.body.hours
         delete req.body.token
         delete req.body.password
+        delete req.body.timesheet
 
         db.collection('user').update(
             { _id: req.requestee._id},
@@ -61,11 +61,11 @@ module.exports = (app, db, mailer, upload) ->
 
         db.collection('user').find({}).toArray((err, user) ->
             if (err)
-                return res.status(500).send({"message": "error retreiving users"})
+                return res.status(500).send({"message": "error retrieving users"})
             for u in user
                 for key, value of u
                     if "admin" in req.requestee?.roles
-                        if key == "picture" or key == "token"
+                        if key == "token"
                             delete u[key]
                     else
                         if key == "_id"

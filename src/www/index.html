@@ -111,45 +111,18 @@
     <main>
         <br/>
 
-        <div class="row">
-            <div class="col">
-                <h3>Public Members</h3>
-                <ul>
-                    <li v-for="user in model.users">
-                        {{user.name}}
-                    </li>
-                </ul>
-            </div>
-            <div class="col">
-                <h3>Public Events</h3>
-                <ul>
-                    <li v-for="event in model.events">
-                        {{event.type}}
-                        {{event.time}}
-                        {{event.location}}
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <br/><hr/>
-        
         <h3>Upcoming Events</h3>
-        <div class="row">
-            <div class="col">
-                <img src="http://placehold.it/300x200"/>
-            </div>
-            <div class="col">
-                <img src="http://placehold.it/300x200"/>
-            </div>
-            <div class="col">
-                <img src="http://placehold.it/300x200"/>
-            </div>
-            <div class="col">
-                <img src="http://placehold.it/300x200"/>
-            </div>
-            <div class="col">
-                <img src="http://placehold.it/300x200"/>
+        <div>
+            <div style="width:300px;height:200px;display:inline-block;position:relative;margin-right:1em;vertical-align:top;" v-for="event in model.events">
+                <img v-if="event.location == 'Los Gatos'" src="http://lh3.ggpht.com/-DGGupYLn4ZY/VNzdGvphsHI/AAAAAAAAAEw/Qj6LMtUo9asg3Wy8M-JZJO1SXM3VKHnEA/s817-no/photo"/>
+                <img style="height:100%;" v-if="event.location != 'Los Gatos'" src="https://lh5.googleusercontent.com/proxy/yvRYmWemzUPl8ymupgZidEMv1XR_HiCP17zKFu0AGR3ehiHjRkczyYWkS4PIBZOC3--PIKlFWSG-S-4Q23WnM1vTxssVKUbBy_X4SbZRLWE0UwI6gG4PHAa3HW9fs25eXx2PB9QJUCPgcJIPcqBx6UPy3vP1dwG9Ug=s700-k-no"/>
+                <div style="position:absolute;top:0;left:0;right:0;bottom:0;background-color:black;opacity:0.5;"></div>
+                <div style="position:absolute;top:0;left:0;right:0;padding:5px;">
+                    <h4 style="color:white;">
+                        {{event.time}} <br/>
+                        {{event.location}}
+                    </h4>
+                </div>
             </div>
         </div>
 
@@ -172,18 +145,28 @@
 
         <br/><hr/>
 
-        <h3>Media</h3>
+        <h3>Prospective Members</h3>
         <div class="row">
             <div class="col">
                 <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi eleifend tincidunt 
-                    massa sit amet condimentum. Nam feugiat cursus lorem, sit amet aliquam ante aliquet 
-                    id. Nullam scelerisque, velit at facilisis consequat, leo dolor convallis nisi.
+                    BAYMS is a 100% volunteer organization. As a parent if you can contribute your time to 
+                    helping us become a success we would greatly appreciate this.﻿
                 </p>
                 <p>
-                    Sed tempor vitae nisl quis ullamcorper. Aenean feugiat, orci in vestibulum ultrices, 
-                    metus dui laoreet nulla, sit amet ornare neque neque ac tellus. Phasellus vitae ultrices 
-                    dolor. Proin a tempus ipsum. Nulla id euismod augue, vitae luctus ligula.
+                    <b>Requirements:</b>
+                    <br/>
+                    <b>Age:</b> 10 - 22 years old
+                    <br/>
+                    <b>General Ensemble:</b> Voice, Piano, Violin, Viola, Cello, Bass, Flute, Clarinet
+                    <b>Special Performance:</b> Saxophone, Trombone, Trumpet, Guitar
+                </p>
+                <p>
+                    <b>Audition</b>
+                    <br/>
+                    Contact BAYMS <a href="mailto:info@bayms.org">info@bayms.org</a> to set up an audition 
+                    time. You may be required to play scales and/or sight read a piece of music, and please 
+                    remember to bring the $20 non-refundable  audition fee, a completed application form﻿, 
+                    and your instrument(s).﻿
                 </p>
             </div>
             <div class="col">
@@ -192,6 +175,37 @@
             </div>
             <div class="col">
                 <img src="http://placehold.it/350x508"/>
+            </div>
+        </div>
+
+        <br/><hr/>
+
+        <h3>Audition Requirements</h3>
+        <div class="row">
+            <div class="col">
+                <p>
+                    <b>For Choir:</b> <br/>
+                    1 small song.﻿﻿
+                </p>
+                <p>
+                    <b>For Piano:</b> <br/>
+                    1 four-octave scale in any key, 1 five-minute solo piece. A sight-reading piece will be given during the audition.
+                </p>
+                <p>
+                    <b>General (at least 5 years of continuous private lessons):</b> <br/>
+                    1 three-octave scale in any key, 1 five-minute solo piece. A sight-reading piece will be given during the audition.
+                </p>
+            </div>
+            <div class="col">
+                <p>
+                    <b>For Strings:</b> <br/>
+                    Young players (at least 2 years of private lessons): <br/>
+                    1 two-octave scale in any key, 1 two-minute solo piece. A sight-reading piece will be given during the audition.
+                </p>
+                <p>
+                    <b>For Woodwinds (at least 1 year of private lessons):</b><br/>
+                    1 two-octave scale in any key, 1 one-octave chromatic scale, 1 two-minute solo piece. A sight-reading piece will be given during the audition.﻿
+                </p>
             </div>
         </div>
 
@@ -213,19 +227,35 @@
             <div class="col">
                 <h3>Sponsors</h3>
                 <ul>
-                    <li>First</li>
-                    <li>Second</li>
-                    <li>Third</li>
-                    <li>Fourth</li>
+                    <li>LinkedIn</li>
+                    <li>Apple</li>
+                    <li>Qualcomm</li>
+                    <li>Cisco</li>
+                    <li>Ebay</li>
+                    <li>Oracle</li>
+                    <li>Intel</li>
+                    <li>Juniper</li>
+                    <li>Applied Materials﻿</li>
                 </ul>
             </div>
-            <div class="col">
+            <div class="col-8">
                 <h3>Donate</h3>
-                <p>Sed tempor vitae nisl quis ullamcorper. Aenean feugiat, orci in vestibulum ultrices, metus dui laoreet nulla, sit amet ornare neque neque ac tellus. Phasellus vitae ultrices dolor. Proin a tempus ipsum. Nulla id euismod augue, vitae luctus ligula.</p>
-            </div>
-            <div class="col">
-                <h3>Contact</h3>
-                <p>Sed tempor vitae nisl quis ullamcorper. Aenean feugiat, orci in vestibulum ultrices, metus dui laoreet nulla, sit amet ornare neque neque ac tellus. Phasellus vitae ultrices dolor. Proin a tempus ipsum. Nulla id euismod augue, vitae luctus ligula.</p>
+                <p>
+                    We are a non-profit organization dedicated to developing and sponsoring children’s musical 
+                    talents through active involvement in community services.﻿
+                </p>
+                <p>
+                    Donations are always accepted at BAYMS and tax-deductible as the law may allow. Check with 
+                    your tax-advisor.﻿
+                </p>
+                <p>
+                    Please send donations, payable to BAYMS, to:﻿
+                </p>
+                <blockquote>
+1667 Via Lugano
+San Jose, CA 95120
+United States
+                </blockquote>
             </div>
         </div>
     </main>

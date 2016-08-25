@@ -29,6 +29,9 @@ app.get('/reset/:auth_token', (req, res) ->
 app.get('/program/:program_id', (req, res) ->
     res.sendFile(path.join(__dirname, './www/program.html'))
 )
+app.get('/timesheet', (req, res) ->
+    res.sendFile(path.join(__dirname, './www/timesheet.html'))
+)
 
 require('./api')(app)
 app.listen(3000)
