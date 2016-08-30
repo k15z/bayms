@@ -17,12 +17,6 @@ module.exports = (app, db, mailer) ->
     generateToken = (user, context, is_parent = false, duration = 60 * 60 * 24) -> 
         token = randomString()
         current_time = parseInt((new Date()).getTime()/1000)
-        console.log({
-            "value": token
-            "context": context
-            "is_parent": is_parent
-            "expiration": current_time + duration
-        })
         db.collection('user').update(
             {"email": user.email}, 
             {
@@ -57,7 +51,7 @@ module.exports = (app, db, mailer) ->
                     if is_user or is_parent1 or is_parent2
                         return res.status(200).send({
                             "message": "success"
-                            "auth_token": generateToken(user, req.headers, !is_user, 60 * 60 * 24)
+                            "auth_token": generateToken(user, req.headers, is_parent1 || is_parent2, 60 * 60 * 24)
                         })
                     return res.status(401).send({"message": "incorrect password"})
                 )
@@ -168,18 +162,26 @@ module.exports = (app, db, mailer) ->
         if !isString(req.body.email)
             return res.status(400).send({"message": "malformed email"})
 
+        req.body.email = sanitize(req.body.email)
+
         db.collection('user').findOne(
-            {"email": sanitize(req.body.email)}
+            {
+                $or: [
+                    {"email": req.body.email},
+                    {"parent1.email": req.body.email},
+                    {"parent2.email": req.body.email}
+                ]
+            },
             (err, user) ->
                 if err or !user
                     return res.status(400).send({"message": "user not found"})
 
-                token = generateToken(user, req.headers, false, 60 * 15)
+                token = generateToken(user, req.headers, req.body.email != user.email, 60 * 15)
                 message = "Please use the following link to reset your password: "
                 message += "`https://www.bayms.org/reset/" + token + "`"
                 mail = {
                     from: '"BAYMS.Web" <bayms.web@gmail.com>'
-                    to: [user.email]
+                    to: [req.body.email]
                     subject: "Password Reset Request"
                     html: marked(message)
                     text: message
@@ -204,8 +206,6 @@ module.exports = (app, db, mailer) ->
             doc = {}
             doc["parent" + req.params.number + ".password"] = hash
 
-            console.log(doc)
-
             db.collection('user').update(
                 { _id: req.requestee._id},
                 {
@@ -213,7 +213,6 @@ module.exports = (app, db, mailer) ->
                 },
                 (err) ->
                     if (err)
-                        console.log(err)
                         return res.status(500).send('something went wrong')
                     res.status(200).send({message: "success"})
             )

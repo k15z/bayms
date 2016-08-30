@@ -3,6 +3,7 @@
 <head>
     <title>BAYMS</title>
     <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Welcome to BAYMS! We are a non-profit organization, 501(c)(3) Public Charity EIN #74-3247617, dedicated to developing and sponsoring children's musical talents through active involvement in community services."/>
     <link href="/img/favicon.png" rel="icon"/>
     <link href="/css/kube.css" rel="stylesheet"/>
     <link href="/css/base.css" rel="stylesheet"/>
@@ -34,43 +35,37 @@
             </div>
             <div class="tab-view" v-if="state.tab=='home'">
                 <div>
-                    <h3>Hello {{model.user.name}}! You are an {{model.user.roles}}.</h3>
+                    <h3>Hello<span v-if="model.user.name"> {{model.user.name}}</span>!</h3>
                     <div class="row">
-                        <div class="col">
-                            <h4 class="subtitle muted">Timesheet</h4>
-                            <p>
-                                I might be calculating this wrong but you have earned <b>{{totalHours(model.user.timesheet.history)}}
-                                hours</b> of community service this year, and you are <b>{{computeAge(model.user.birthday)}} 
-                                years </b> old so I believe you are eligible for 
-                                <b>
-                                    {{awardDescription(totalHours(model.user.timesheet.history), computeAge(model.user.birthday))}}
-                                </b>.
-                            </p>
+                        <div class="col" style="padding-right:20px;">
+                            <h4 class="subtitle muted">Calendar</h4>
+                            <ul v-for="event in model.events">
+                                <li>
+                                    {{event.time}}<br/>
+                                    <i>{{event.location}}</i><br/>
+                                    <span class="muted">
+                                        {{event.notes}}
+                                    </span>
+                                </li>
+                            </ul>
                         </div>
                         <div class="col-8">
+                            <h4 class="subtitle muted">Timesheet</h4>
+                            <p>
+                                According to our records, you are currently eligible for 
+                                {{awardDescription(totalHours(model.user.timesheet.history), computeAge(model.user.birthday))}}. 
+                                Our records indicate that you are {{computeAge(model.user.birthday)}} years old and have earned 
+                                {{totalHours(model.user.timesheet.history)}} hours of community service.
+                            </p>
                             <vue-chart style="font-size: 0.8em;" :columns="timesheetColumns" :rows="timesheetRows" :options="timesheetOptions" chart-type="AreaChart"></vue-chart>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col">
-                            <h4 class="subtitle muted">Calendar</h4>
-                            <div v-for="event in model.events">
-                                {{event.type}}<br/>
-                                {{event.location}}<br/>
-                                {{event.time}}<br/>
-                                <br/>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <h4 class="subtitle muted">Settings</h4>
+                            <br/>
+                            <h4 class="subtitle muted">Notifications</h4>
                             <div class="form-item checkboxes">
                                 <label><input v-model="model.user.notification.timesheet" type="checkbox"> Notify me when volunteer hours are granted.</label>
                             </div>
-                            <br/>
                             <div class="form-item checkboxes">
                                 <label><input v-model="model.user.notification.approval" type="checkbox"> Notify me when my pieces are approved.</label>
                             </div>
-                            <br/>
                             <div class="form-item checkboxes" v-if="hasRole('admin')">
                                 <label><input v-model="model.user.notification.application" type="checkbox"> Notify me when people apply.</label>
                             </div>                        
@@ -198,13 +193,13 @@
             </div>
             <div class="tab-view" v-if="state.tab=='events'">
                 <select v-model="state.event_id" style="width:auto;">
-                    <option value="{{event._id}}" v-for="event in model.events">{{event.time}}</option>
+                    <option value="{{event._id}}" v-for="event in model.events" v-if="event.visible.members || hasRole('admin')">{{event.time}}</option>
                     <option value="create" v-if="hasRole('admin')">Create Event</option>
                 </select>
-                <div>
+                <div v-if="state.event_id">
                     <div class="card">
                         <div class="row form">
-                            <div class="col col-6">
+                            <div class="col">
                                 <h3>{{state.event.type}} at {{state.event.location}}</h3>
                                 <h4 class="subheading muted">
                                     {{timeString(stringDateTime(state.event.time))}}
@@ -222,7 +217,7 @@
                                     <label><input v-model="state.event.visible.public" type="checkbox"> Visible to public</label>
                                 </div>
                             </div>
-                            <div class="col" v-if="hasRole('admin')">
+                            <div class="col col-6" v-if="hasRole('admin')">
                                 <div class="row">
                                     <div class="col">
                                         <div class="form-item">
@@ -268,7 +263,7 @@
                                 <th v-if="hasRole('admin')">Length</th>
                                 <th v-if="hasRole('admin')">Link</th>
                                 <th>Status</th>
-                                <th>Action</th>
+                                <th v-if="hasRole('admin')">Action</th>
                             </thead>
                             <tbody v-sortable.tr="state">
                                 <tr v-for="piece in state.event.piece">
@@ -297,6 +292,10 @@
                     </div>
                     <div class="card" v-if="state.event._id">
                         <h5 v-if="!state.piece._id">Submit Piece</h5>
+                        <p v-if="!state.piece._id">
+                            Before submitting your piece, please review our <a href="/assets/performance_etiquette.pdf">performance 
+                            etiquette</a> guidelines.
+                        </p>
                         <h5 v-if="state.piece._id">Edit Piece: {{state.piece.name}}</h5>
                         <table class="flat">
                             <tbody>
@@ -363,10 +362,17 @@
                             <td>{{user.roles}}</td>
                             <td v-if="hasRole('admin')">
                                 <a @click="setRole(user._id, 'admin')">admin</a>
+                                 | 
                                 <a @click="setRole(user._id, 'member')">member</a>
+                                 | 
                                 <a @click="setRole(user._id, 'alumni')">alumni</a>
+                                 | 
                                 <a @click="setRole(user._id, 'applicant')">applicant</a>
-                                 |
+                                <br/>
+                                <a @click="resetParent(user.parent1)">reset parent 1</a>
+                                 | 
+                                <a @click="resetParent(user.parent2)">reset parent 2</a>
+                                <br/>
                                 <a @click="deleteUser(user._id)">delete</a>
                                  | 
                                 <a @click="giveHours(user._id)">give hours</a>
@@ -449,7 +455,7 @@
             <li v-for="(key, value) in state.user" v-if="key!='salt' && key !='password'">
                 <b>{{key}}:</b> 
                 <span v-if="typeof value != 'object'">
-                    <pre>{{value}}</pre>
+                    <code>{{value}}</code>
                 </span>
                 <ul v-if="typeof value == 'object'">
                     <li v-for="(nkey, nvalue) in value">

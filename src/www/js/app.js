@@ -1,5 +1,5 @@
-Vue.config.debug = true
 Vue.use(VueCharts);
+Vue.config.debug = true;
 var vm = new Vue({
     el: "body",
     created: function () {
@@ -53,7 +53,7 @@ var vm = new Vue({
                 window.location.href = "/auth";
             })
         $.get('/api/v2/news').done(function (obj) { self.model.news = obj; });
-        $.get('/api/v2/event').done(function (obj) { self.model.events = obj; self.state.event_id = obj[0]._id});
+        $.get('/api/v2/event').done(function (obj) { self.model.events = obj;});
         $.get('/api/v2/user/all').done(function (obj) { self.model.users = obj; });
     },
     data: {
@@ -158,6 +158,19 @@ var vm = new Vue({
                     });
             })
         },
+        resetParent: function (parent) {
+            var self = this
+            if (!parent || !parent.email)
+                alert("This parent doesn't exist...")
+            else if (confirm("Send reset request to " + parent.email + "?"))
+                $.ajax({
+                    method: "POST", 
+                    url: "/api/v2/auth/reset",
+                    data: {
+                        email: parent.email
+                    }
+                });
+        },
         giveHours: function (user_id) {
             var self = this
             var hours = prompt("How many hours?")
@@ -217,10 +230,13 @@ var vm = new Vue({
         },
         parentPassword: function (number) {
             var self = this;
+            var password = prompt("Parent " + number + " password:");
+            if (!password)
+                return;
             $.ajax({
                 method: "POST", 
                 url: "/api/v2/auth/parent/" + number,
-                data:{password:prompt("Parent " + number + " password:")}
+                data:{password:password}
             }).done(function () {
                 $.get('/api/v2/user')
                     .done(function (obj) {
@@ -282,29 +298,29 @@ var vm = new Vue({
         awardDescription: function (hours, age) {
             if (5 <= age && age <= 10) {
                 if (hours >= 75)
-                    return "gold"
+                    return "Gold"
                 if (hours >= 50)
-                    return "silver"
+                    return "Silver"
                 if (hours >= 26)
-                    return "bronze"
+                    return "Bronze"
             }
             if (11 <= age && age <= 15) {
                 if (hours >= 100)
-                    return "gold"
+                    return "Gold"
                 if (hours >= 75)
-                    return "silver"
+                    return "Silver"
                 if (hours >= 50)
-                    return "bronze"
+                    return "Bronze"
             }
             if (16 <= age && age <= 25) {
                 if (hours >= 250)
-                    return "gold"
+                    return "Gold"
                 if (hours >= 175)
-                    return "silver"
+                    return "Silver"
                 if (hours >= 100)
-                    return "bronze"
+                    return "Bronze"
             }
-            return "nothing"
+            return "no awards"
         },
         deleteArticle: function () {
             var self = this

@@ -39,8 +39,7 @@ module.exports = (app, db, mailer) ->
         if !req.requestee
             return res.status(401).send('access denied')
         if "admin" not in req.requestee.roles
-            if "leader" not in req.requestee.roles
-                return res.status(401).send('access denied')
+            return res.status(401).send('access denied')
 
         event = sanitize(req.body)
         event.creator = req.requestee._id
@@ -61,15 +60,13 @@ module.exports = (app, db, mailer) ->
         if !req.requestee
             return res.status(401).send('access denied')
         if "admin" not in req.requestee.roles
-            if "leader" not in req.requestee.roles
-                return res.status(401).send('access denied')
+            return res.status(401).send('access denied')
 
         event = booleanify(sanitize(req.body))
-        delete event._id
-        if event.piece
-            for piece in event.piece
-                piece._id = new mongo.ObjectID(piece._id)
         event.creator = req.requestee._id
+        delete event._id
+        delete event.piece
+
         db.collection('event').update(
             { _id: new mongo.ObjectID(req.params.event_id)},
             {
@@ -77,7 +74,6 @@ module.exports = (app, db, mailer) ->
             }
             (err) ->
                 if (err)
-                    console.log(err)
                     return res.status(500).send('something went wrong')
                 event._id = req.params.event_id
                 res.status(200).send({
@@ -91,8 +87,7 @@ module.exports = (app, db, mailer) ->
         if !req.requestee
             return res.status(401).send('access denied')
         if "admin" not in req.requestee.roles
-            if "leader" not in req.requestee.roles
-                return res.status(401).send('access denied')
+            return res.status(401).send('access denied')
 
         event_id = new mongo.ObjectID(req.params.event_id)
         src_event_id = new mongo.ObjectID(req.params.src_event_id)
@@ -125,8 +120,7 @@ module.exports = (app, db, mailer) ->
         if !req.requestee
             return res.status(401).send('access denied')
         if "admin" not in req.requestee.roles
-            if "leader" not in req.requestee.roles
-                return res.status(401).send('access denied')
+            return res.status(401).send('access denied')
 
         db.collection('event').remove(
             { _id: new mongo.ObjectID(req.params.event_id)}

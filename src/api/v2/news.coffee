@@ -30,8 +30,7 @@ module.exports = (app, db, mailer) ->
         if !req.requestee
             return res.status(401).send({"message": "access denied"})
         if "admin" not in req.requestee.roles
-            if "leader" not in req.requestee.roles
-                return res.status(401).send({"message": "access denied"})
+            return res.status(401).send({"message": "access denied"})
 
         news = booleanify(sanitize(req.body))
         news.writer = req.requestee._id
@@ -85,8 +84,7 @@ module.exports = (app, db, mailer) ->
         if !req.requestee
             return res.status(401).send({"message": "access denied"})
         if "admin" not in req.requestee.roles
-            if "leader" not in req.requestee.roles
-                return res.status(401).send({"message": "access denied"})
+            return res.status(401).send({"message": "access denied"})
 
         news = booleanify(sanitize(req.body))
         news.writer = req.requestee._id
@@ -107,8 +105,7 @@ module.exports = (app, db, mailer) ->
         if !req.requestee
             return res.status(401).send({"message": "access denied"})
         if "admin" not in req.requestee.roles
-            if "leader" not in req.requestee.roles
-                return res.status(401).send({"message": "access denied"})
+            return res.status(401).send({"message": "access denied"})
 
         db.collection('news').remove(
             { _id: new mongo.ObjectID(req.params.news_id)},

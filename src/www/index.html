@@ -93,6 +93,14 @@
             max-width: 960px;
         }
 
+        main .event-tile {
+            position: relative;
+            height: 200px !important;
+        }
+
+        main .event-tile:hover {
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
@@ -112,17 +120,20 @@
         <br/>
 
         <h3>Upcoming Events</h3>
-        <div>
-            <div style="width:300px;height:200px;display:inline-block;position:relative;margin-right:1em;vertical-align:top;" v-for="event in model.events">
-                <img v-if="event.location == 'Los Gatos'" src="http://lh3.ggpht.com/-DGGupYLn4ZY/VNzdGvphsHI/AAAAAAAAAEw/Qj6LMtUo9asg3Wy8M-JZJO1SXM3VKHnEA/s817-no/photo"/>
-                <img style="height:100%;" v-if="event.location != 'Los Gatos'" src="https://lh5.googleusercontent.com/proxy/yvRYmWemzUPl8ymupgZidEMv1XR_HiCP17zKFu0AGR3ehiHjRkczyYWkS4PIBZOC3--PIKlFWSG-S-4Q23WnM1vTxssVKUbBy_X4SbZRLWE0UwI6gG4PHAa3HW9fs25eXx2PB9QJUCPgcJIPcqBx6UPy3vP1dwG9Ug=s700-k-no"/>
-                <div style="position:absolute;top:0;left:0;right:0;bottom:0;background-color:black;opacity:0.5;"></div>
-                <div style="position:absolute;top:0;left:0;right:0;padding:5px;">
-                    <h4 style="color:white;">
-                        {{event.time}} <br/>
-                        {{event.location}}
-                    </h4>
-                </div>
+        <div class="row">
+            <div class="col event-tile" v-for="event in model.events | limit 3">
+                <a href="/program/{{event._id}}" target="_blank">
+                    <div style="height:100%;position:relative;">
+                        <img style="height:100%;" src="{{eventImage(event.location)}}"/>
+                        <div style="position:absolute;top:0;left:0;right:0;bottom:0;background-color:black;opacity:0.5;"></div>
+                        <div style="position:absolute;top:0;left:0;right:0;padding:5px;">
+                            <h4 style="color:white;">
+                                {{event.time}} <br/>
+                                {{event.location}}
+                            </h4>
+                        </div>
+                    </div>
+                </a>
             </div>
         </div>
 
@@ -140,6 +151,18 @@
                 <p>
                     Our scheduled annual programs include two concerts around Memorial Day and the Christmas Holiday Season, and a minimum of four community service events at community centers, retirement homes, schools and hospitals.﻿
                 </p>
+            </div>
+        </div>
+
+        <br/><hr/>
+
+        <h3>Rising Seniors</h3>
+        <div class="row">
+            <div class="col" v-for="user in model.users" v-if="user.picture">
+                <img :src="user.picture"/>
+                <div v-if="user.biography">
+                    {{user.biography}}
+                </div>
             </div>
         </div>
 
@@ -211,18 +234,6 @@
 
         <br/><hr/>
 
-        <h3>Members</h3>
-        <div class="row">
-            <div class="col" v-for="user in model.users" v-if="user.picture">
-                <img :src="user.picture"/>
-                <div v-if="user.biography">
-                    {{user.biography}}
-                </div>
-            </div>
-        </div>
-
-        <br/><hr/>
-
         <div class="row">
             <div class="col">
                 <h3>Sponsors</h3>
@@ -283,6 +294,22 @@ United States
                     $('html, body').animate({
                         scrollTop: $("main").offset().top - 20
                     }, 100);
+                },
+                eventImage: function (location) {
+                    if (location == "Los Gatos")
+                        return "img/los_gatos.jpg"
+                    if (location == "Lytton Gardens")
+                        return "img/lytton_gardens.jpg"
+                    if (location == "Sunny View")
+                        return "img/sunny_view.jpg"
+                    if (location == "Chateau of Cupertino")
+                        return "img/chateau_cupertino.jpg"
+                    return "";
+                }
+            },
+            filters: {
+                limit: function(arr, limit) {
+                    return arr.slice(0, limit)
                 }
             }
         })
