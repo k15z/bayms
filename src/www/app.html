@@ -50,17 +50,19 @@
                             </ul>
                         </div>
                         <div class="col-8">
-                            <h4 class="subtitle muted">Timesheet</h4>
-                            <p>
-                                According to our records, you are currently eligible for 
-                                {{awardDescription(totalHours(model.user.timesheet.history), computeAge(model.user.birthday))}}. 
-                                Our records indicate that you are {{computeAge(model.user.birthday)}} years old and have earned 
-                                {{totalHours(model.user.timesheet.history)}} hours of community service.
-                            </p>
-                            <vue-chart style="font-size: 0.8em;" :columns="timesheetColumns" :rows="timesheetRows" :options="timesheetOptions" chart-type="AreaChart"></vue-chart>
-                            <br/>
+                            <div v-if="!hasRole('applicant')">
+                                <h4 class="subtitle muted">Timesheet</h4>
+                                <p>
+                                    According to our records, you are currently eligible for 
+                                    {{awardDescription(totalHours(model.user.timesheet.history), computeAge(model.user.birthday))}}. 
+                                    Our records indicate that you are {{computeAge(model.user.birthday)}} years old and have earned 
+                                    {{totalHours(model.user.timesheet.history)}} hours of community service.
+                                </p>
+                                <vue-chart style="font-size: 0.8em;" :columns="timesheetColumns" :rows="timesheetRows" :options="timesheetOptions" chart-type="AreaChart"></vue-chart>
+                                <br/>
+                            </div>
                             <h4 class="subtitle muted">Notifications</h4>
-                            <div class="form-item checkboxes">
+                            <div class="form-item checkboxes" v-if="!hasRole('applicant')">
                                 <label><input v-model="model.user.notification.timesheet" type="checkbox"> Notify me when volunteer hours are granted.</label>
                             </div>
                             <div class="form-item checkboxes">

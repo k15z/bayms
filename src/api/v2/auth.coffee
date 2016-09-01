@@ -12,7 +12,8 @@ module.exports = (app, db, mailer) ->
         crypto.pbkdf2(password, salt, 10000, 512, 'sha512', callback)
 
     randomString = () ->
-        return crypto.randomBytes(32).toString('base64')
+        b64 = crypto.randomBytes(32).toString('base64')
+        return b64.replace(/\/|\+|=/g, "")
 
     generateToken = (user, context, is_parent = false, duration = 60 * 60 * 24) -> 
         token = randomString()

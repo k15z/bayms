@@ -3,3 +3,5 @@
 /bin/upload
 /bin
 smtps.auth
+.DS_STORE
+

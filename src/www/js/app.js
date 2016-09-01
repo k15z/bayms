@@ -91,7 +91,14 @@ var vm = new Vue({
                 if (history[i].reported_on) {
                     var date = (new Date(parseInt(history[i].reported_on*1000))).toLocaleDateString()
                     var hours = parseInt(history[i].time) / (60*60)
-                    rows.push([date, hours])
+                    var reason = history[i].reason
+                    if (reason.time)
+                        reason = reason.location
+                    rows.push([
+                        date, 
+                        hours, 
+                        hours + ' hour - ' + reason
+                    ])
                 }
             return rows
         },
@@ -102,10 +109,14 @@ var vm = new Vue({
                 }, {
                     'type': 'number',
                     'label': 'Hours'
+                }, {
+                    'type': 'string',
+                    'role': 'tooltip'
                 }]
         },
         timesheetOptions: function () {
             return {
+                legend: 'none',
                 hAxis: {
                     title: 'Date'
                 },

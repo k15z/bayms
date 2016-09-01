@@ -16,35 +16,52 @@
     </style>
 </head>
 <body v-cloak>
-    <input v-model="state.query" type="text" class="col-12" placeholder="search..." />
-    <table>
-        <tr v-for="user in model.users | filterBy state.query">
-            <td style="width:200px;">
-                <div style="position:relative;width:200px;height:180px;background:url('{{user.picture}}');background-size:cover;background-color:#333;">
-                    <div style="position:absolute;top:0;bottom:0;left:0;right:0;padding:5px;">
-                        <h4 style="color:white;">
-                            {{user.name}} <br/>
-                            {{user.email}} <br/>
-                            {{user.roles}}
-                        </h4>
-                    </div>
-                </div>
-            </td>
-            <td>
-                <button @click="start(user._id)" v-if="!user.timesheet.active" class="button primary outline">Start Tracking</button>
-                <button @click="stop(user._id)" v-if="user.timesheet.active" class="button red outline">Stop Tracking</button>
-            </td>
-            <td>
-                <div v-if="user.timesheet.active">
-                    Started at: {{timeString(user.timesheet.unixtime)}}
-                    <br/>
-                    {{Math.round((currentTime - user.timesheet.unixtime) / 60)}} minutes elapsed
-                    <br/>
-                    {{user.timesheet.reason | json}}
-                </div>
-            </td>
-        </tr>
-    </table>
+    <div class="row">
+        <div class="col">
+            <input v-model="state.query" type="text" style="width:100%;" placeholder="search..." />
+            <table>
+                <tr v-for="user in model.users | filterBy state.query">
+                    <td style="width:200px;">
+                        <div style="position:relative;width:200px;height:180px;background:url('{{user.picture}}');background-size:cover;background-color:#333;">
+                            <div style="position:absolute;top:0;bottom:0;left:0;right:0;padding:5px;">
+                                <h4 style="color:white;">
+                                    {{user.name}} <br/>
+                                    {{user.email}} <br/>
+                                    {{user.roles}}
+                                </h4>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <button @click="start(user._id)" v-if="!user.timesheet.active" class="button primary outline">Start</button>
+                        <button @click="stop(user._id)" v-if="user.timesheet.active" class="button red outline">Stop</button>
+                    </td>
+                    <td>
+                        <div v-if="user.timesheet.active">
+                            Started at: {{timeString(user.timesheet.unixtime)}}
+                            <br/>
+                            {{Math.round((state.currentTime - user.timesheet.unixtime) / 60)}} minutes elapsed
+                            <br/>
+                            {{user.timesheet.reason | json}}
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="col col-3" v-if="state.showReason">
+            <p>
+                Set a reason. You can select an event from the dropdown or just manually enter it. Remember to have the members
+                check in when they arrive and check out when they leave for accurate records.
+            </p>
+            <select v-model="state.reason" style="width:100%;">
+                <option value="{{event | json}}" v-for="event in model.events" v-if="event.visible.members || hasRole('admin')">
+                    {{event.time}}
+                </option>
+            </select>
+            <input v-model="state.reason" type="text" style="width:100%;" placeholder="reason" />
+            <a style="float:right;" @click="state.showReason=false">Hide Reason</a>
+        </div>
+    </div>
     <script src="/js/vue.js" type="text/javascript"></script>
     <script src="/js/jquery.js" type="text/javascript"></script>
     <script src="/js/ajax.js" type="text/javascript"></script>
@@ -57,7 +74,9 @@
                 ready: false,
                 state: {
                     query: "",
-                    reason: ""
+                    reason: "",
+                    currentTime: 0,
+                    showReason: true
                 },
                 model: {
                     users: [],
@@ -66,6 +85,12 @@
             },
             created: function () {
                 var self = this;
+                var tick = function () {
+                    self.state.currentTime = Math.round((new Date()).getTime() / 1000)
+                    setTimeout(tick, 1000)
+                }
+                tick()
+
                 $.get('/api/v2/user')
                     .done(function (obj) {
                         self.ready = true;
@@ -89,15 +114,20 @@
             methods: {
                 start: function (user_id) {
                     var self = this
-                    var reason = prompt("Why?")
-                    if (!reason)
+                    if (!confirm(JSON.stringify(self.state.reason)))
                         return
+
+                    try {
+                        reason = JSON.parse(self.state.reason);
+                        self.state.reason = reason;
+                        if (reason.piece)
+                            delete reason.piece;
+                    } catch(e) {}
+
                     $.ajax({
                         method: "POST", 
                         url: "/api/v2/user/" + user_id + "/timesheet/active",
-                        data: {
-                            reason: reason
-                        }
+                        data: self.state.reason
                     }).done(function () {
                         $.get('/api/v2/user/all')
                             .done(function (obj) { 
@@ -113,17 +143,12 @@
                     }).done(function () {
                         $.get('/api/v2/user/all')
                             .done(function (obj) { 
-                                self.model.users = obj; 
+                                self.model.users = obj;
                             });
                     })
                 },
                 timeString: function (unix) {
                     return (new Date(unix * 1000)).toLocaleTimeString();
-                }
-            },
-            computed: {
-                currentTime: function () {
-                    return Math.round((new Date()).getTime() / 1000)
                 }
             }
         });

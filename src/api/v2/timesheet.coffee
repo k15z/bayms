@@ -15,12 +15,14 @@ module.exports = (app, db, mailer, upload) ->
                 booleanify(value)
         return obj
 
-    notifyUser = (user_id, hours) ->
+    notifyUser = (user_id, hours, reason) ->
+        if reason.location
+            reason = reason.location
         db.collection('user').findOne(
             { _id: user_id},
             (err, user) ->
                 if user.notification?.timesheet
-                    text = "You've been credited with " + hours + " volunteer hours."
+                    text = "You've been credited with #{hours} volunteer hours for your work at #{reason}."
                     mail = {
                         from: '"BAYMS.Web" <bayms.web@gmail.com>',
                         to: ['bayms.web@gmail.com'],
@@ -91,7 +93,7 @@ module.exports = (app, db, mailer, upload) ->
                         }
                     },
                     (err) ->
-                        notifyUser(user_id, duration / (60*60))
+                        notifyUser(user_id, duration / (60*60), reason)
                         if err
                             return res.status(500).send({"message": "failed to set inactive"})
                         return res.status(200).send({"message": "success"})
@@ -126,7 +128,7 @@ module.exports = (app, db, mailer, upload) ->
                 }
             },
             (err, user) ->
-                notifyUser(user_id, entry.time / (60*60))
+                notifyUser(user_id, entry.time / (60*60), entry.reason)
                 if (err)
                     return res.status(500).send({"message": "error adding entry"})
                 res.status(200).send({"message": "success"})
