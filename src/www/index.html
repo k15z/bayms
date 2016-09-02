@@ -79,11 +79,17 @@
             text-decoration: none;
             border-top: 1px solid #9ACD32;
             border-bottom: 1px solid #9ACD32;
+
+            right: 0px;
+            color: white;
+            background-color: #9ACD32;
+            border-left: 1px solid #9ACD32;
         }
 
         header .tiny-tab:hover {
-            right: 0px;
+            width: 105px;
             color: #9ACD32;
+            background-color: white;
             border-left: 5px solid #9ACD32;
         }
 
@@ -94,8 +100,9 @@
         }
 
         main .event-tile {
+            margin-bottom: 5px;
             position: relative;
-            height: 200px !important;
+            height: 173px !important;
         }
 
         main .event-tile:hover {
@@ -119,25 +126,26 @@
     <main>
         <br/>
 
-        <h3>Upcoming Events</h3>
-        <div class="row">
-            <div class="col event-tile" v-for="event in model.events | limit 3">
-                <a href="/program/{{event._id}}" target="_blank">
-                    <div style="height:100%;position:relative;">
-                        <img style="height:100%;" src="{{eventImage(event.location)}}"/>
-                        <div style="position:absolute;top:0;left:0;right:0;bottom:0;background-color:black;opacity:0.5;"></div>
-                        <div style="position:absolute;top:0;left:0;right:0;padding:5px;">
-                            <h4 style="color:white;">
-                                {{event.time}} <br/>
-                                {{event.location}}
-                            </h4>
+        <div v-if="model.events.length > 0">
+            <h3>Upcoming Events</h3>
+            <div class="row">
+                <div class="col event-tile" v-for="event in model.events | limit 3">
+                    <a href="/program/{{event._id}}" target="_blank">
+                        <div style="position:relative;height:100%;overflow:hidden;">
+                            <div style="position:absolute;top:0;left:0;right:0;bottom:0;background-size:cover;background-image:url({{eventImage(event.location)}})"></div>
+                            <div style="position:absolute;top:0;left:0;right:0;bottom:0;background-color:black;opacity:0.5;"></div>
+                            <div style="position:absolute;top:0;left:0;right:0;padding:5px;">
+                                <h4 style="color:white;">
+                                    {{event.location}} <br/>
+                                    {{dateString(event.time)}}
+                                </h4>
+                            </div>
                         </div>
-                    </div>
-                </a>
+                    </a>
+                </div>
             </div>
+            <br/><hr/>
         </div>
-
-        <br/><hr/>
 
         <div class="row">
             <div class="col">
@@ -156,17 +164,18 @@
 
         <br/><hr/>
 
-        <h3>Rising Seniors</h3>
-        <div class="row">
-            <div class="col" v-for="user in model.users" v-if="user.picture">
-                <img :src="user.picture"/>
-                <div v-if="user.biography">
-                    {{user.biography}}
+        <div v-if="model.users.length > 0">
+            <h3>Rising Seniors</h3>
+            <div class="row">
+                <div class="col col-3" v-for="user in model.users" v-if="user.picture">
+                    <img :src="user.picture"/>
+                    <div v-if="user.biography">
+                        {{user.biography}}
+                    </div>
                 </div>
             </div>
+            <br/><hr/>
         </div>
-
-        <br/><hr/>
 
         <h3>Prospective Members</h3>
         <div class="row">
@@ -294,15 +303,26 @@ United States
                     }, 100);
                 },
                 eventImage: function (location) {
+                    function pick(arr) {
+                        return arr[Math.floor(arr.length * Math.random())]
+                    }
+
                     if (location == "Los Gatos")
-                        return "img/los_gatos.jpg"
+                        return pick(["img/los_gatos.jpg", "img/los_gatos.1.png"])
+
                     if (location == "Lytton Gardens")
-                        return "img/lytton_gardens.jpg"
+                        return pick(["img/lytton_gardens.jpg", "img/lytton_gardens.1.png"])
+
                     if (location == "Sunny View")
-                        return "img/sunny_view.jpg"
+                        return pick(["img/sunny_view.jpg"])
+
                     if (location == "Chateau of Cupertino")
-                        return "img/chateau_cupertino.jpg"
+                        return pick(["img/chateau_cupertino.jpg", "img/chateau_cupertino.1.png", "img/chateau_cupertino.2.png", "img/chateau_cupertino.3.png"])
+
                     return "";
+                },
+                dateString: function (date_str) {
+                    return (new Date(date_str)).toLocaleDateString()
                 }
             },
             filters: {

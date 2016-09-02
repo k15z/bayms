@@ -49,16 +49,12 @@
             </table>
         </div>
         <div class="col col-3" v-if="state.showReason">
-            <p>
-                Set a reason. You can select an event from the dropdown or just manually enter it. Remember to have the members
-                check in when they arrive and check out when they leave for accurate records.
-            </p>
-            <select v-model="state.reason" style="width:100%;">
-                <option value="{{event | json}}" v-for="event in model.events" v-if="event.visible.members || hasRole('admin')">
-                    {{event.time}}
-                </option>
-            </select>
-            <input v-model="state.reason" type="text" style="width:100%;" placeholder="reason" />
+            <div>
+                <input list="events" v-model="state.reason" type="text" style="width:100%;" placeholder="Reason" />
+                <datalist id="events">
+                    <option value="{{event.time}} - {{event.location}}" v-for="event in model.events">
+                </datalist>
+            </div>
             <a style="float:right;" @click="state.showReason=false">Hide Reason</a>
         </div>
     </div>
@@ -119,15 +115,18 @@
 
                     try {
                         reason = JSON.parse(self.state.reason);
-                        self.state.reason = reason;
-                        if (reason.piece)
+                        if (reason.piece) {
                             delete reason.piece;
+                            self.state.reason = reason;
+                        }
                     } catch(e) {}
 
                     $.ajax({
                         method: "POST", 
                         url: "/api/v2/user/" + user_id + "/timesheet/active",
-                        data: self.state.reason
+                        data: {
+                            reason: self.state.reason
+                        }
                     }).done(function () {
                         $.get('/api/v2/user/all')
                             .done(function (obj) { 

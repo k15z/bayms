@@ -3,6 +3,7 @@
 module.exports = (app, db, mailer) ->
     crypto = require('crypto')
     marked = require('marked')
+    zxcvbn = require('zxcvbn')
     sanitize = require('mongo-sanitize')
 
     isString = (value) ->
@@ -35,15 +36,15 @@ module.exports = (app, db, mailer) ->
 
     app.post('/api/v2/auth/signin', (req, res) ->
         if !req.body.email or !req.body.password
-            return res.status(400).send({"message": "missing email or password"})
+            return res.status(400).send("Missing email or password.")
         if !isString(req.body.email) or !isString(req.body.password)
-            return res.status(400).send({"message": "malformed email or password"})
+            return res.status(400).send("Malformed email or password.")
 
         db.collection('user').findOne(
             {"email": sanitize(req.body.email)}
             (err, user) ->
                 if err or !user
-                    return res.status(401).send({"message": "incorrect email"})
+                    return res.status(401).send("Incorrect email.")
 
                 computeHash(req.body.password, user.salt, (err, hash) ->
                     is_user = hash.toString('base64') == user.password
@@ -54,22 +55,33 @@ module.exports = (app, db, mailer) ->
                             "message": "success"
                             "auth_token": generateToken(user, req.headers, is_parent1 || is_parent2, 60 * 60 * 24)
                         })
-                    return res.status(401).send({"message": "incorrect password"})
+                    return res.status(401).send("Incorrect password.")
                 )
         )
     )
 
     app.post('/api/v2/auth/signup', (req, res) ->
         if !req.body.email or !req.body.password
-            return res.status(400).send({"message": "missing email or password"})
+            return res.status(400).send("Missing email or password.")
         if !isString(req.body.email) or !isString(req.body.password)
-            return res.status(400).send({"message": "malformed email or password"})
+            return res.status(400).send("Malformed email or password.")
+
+        security = zxcvbn(req.body.password)
+        if security.score <= 2
+            message = ""
+            message += "Your password is not strong enough. "
+            if security.feedback?.warning
+                message += "#{security.feedback.warning}. "
+            if security.feedback?.suggestions
+                suggestion = security.feedback.suggestions.join(" ")
+                message += "#{suggestion}"
+            return res.status(400).send(message)
 
         db.collection('user').findOne(
             {"email": sanitize(req.body.email)}
             (err, user) ->
                 if err or user
-                    return res.status(400).send({"message": "email already exists"})
+                    return res.status(400).send("Email already exists.")
 
                 salt = randomString()
                 email = req.body.email
@@ -85,7 +97,7 @@ module.exports = (app, db, mailer) ->
 
                     db.collection('user').insert(user, (err) ->
                         if err
-                            return res.status(500).send({"message": "error creating user"})
+                            return res.status(500).send("Error creating user.")
                         else
                             return res.status(200).send({
                                 "message": "success"
@@ -134,8 +146,8 @@ module.exports = (app, db, mailer) ->
                         "password": hash
                     }
                 },
-                (err, count) ->
-                    if err or count != 1
+                (err) ->
+                    if err
                         return res.status(500).send({"message": "error changing password"})
                     return res.status(200).send({"message": "success"})
             )

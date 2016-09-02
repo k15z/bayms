@@ -16,8 +16,6 @@ module.exports = (app, db, mailer, upload) ->
         return obj
 
     notifyUser = (user_id, hours, reason) ->
-        if reason.location
-            reason = reason.location
         db.collection('user').findOne(
             { _id: user_id},
             (err, user) ->
@@ -40,7 +38,7 @@ module.exports = (app, db, mailer, upload) ->
         if not "admin" in req.requestee?.roles
             return res.status(401).send({"message": "access denied"})
 
-        reason = sanitize(req.body)
+        reason = sanitize(req.body.reason)
         user_id = new mongo.ObjectID(req.params.user_id)
 
         db.collection('user').update(
@@ -159,7 +157,7 @@ module.exports = (app, db, mailer, upload) ->
         )
     )
 
-    app.post('/api/v2/user/:user_id/timesheet/:timesheet_id/unapprove', (req, res) ->
+    app.post('/api/v2/user/:user_id/timesheet/:timesheet_id/disapprove', (req, res) ->
         if !req.requestee
             return res.status(401).send({"message": "access denied"})
         if not "admin" in req.requestee?.roles

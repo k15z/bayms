@@ -40,7 +40,7 @@
                         <div class="col" style="padding-right:20px;">
                             <h4 class="subtitle muted">Calendar</h4>
                             <ul v-for="event in model.events">
-                                <li>
+                                <li v-if="event.visible.members || hasRole('admin')">
                                     {{event.time}}<br/>
                                     <i>{{event.location}}</i><br/>
                                     <span class="muted">
@@ -53,10 +53,20 @@
                             <div v-if="!hasRole('applicant')">
                                 <h4 class="subtitle muted">Timesheet</h4>
                                 <p>
-                                    According to our records, you are currently eligible for 
-                                    {{awardDescription(totalHours(model.user.timesheet.history), computeAge(model.user.birthday))}}. 
-                                    Our records indicate that you are {{computeAge(model.user.birthday)}} years old and have earned 
-                                    {{totalHours(model.user.timesheet.history)}} hours of community service.
+                                    <span v-if="model.user.birthday">
+                                        According to our records, you are currently eligible for 
+                                        {{awardDescription(totalHours(model.user.timesheet.history), computeAge(model.user.birthday))}}. 
+                                        Our records indicate that you are {{computeAge(model.user.birthday)}} years old.
+                                    </span>
+
+                                    <span v-if="model.user.timesheet.history">
+                                        So far, you have earned {{totalHours(model.user.timesheet.history)}} hours of community service.
+                                    </span>
+
+                                    <span v-if="pendingHours(model.user.timesheet.history)">
+                                        Of these hours, you have {{pendingHours(model.user.timesheet.history)}} hours that are still 
+                                        pending approval.
+                                    </span>
                                 </p>
                                 <vue-chart style="font-size: 0.8em;" :columns="timesheetColumns" :rows="timesheetRows" :options="timesheetOptions" chart-type="AreaChart"></vue-chart>
                                 <br/>
@@ -237,7 +247,12 @@
                                     <div class="col">
                                         <div class="form-item">
                                             <label>Location</label>
-                                            <input v-model="state.event.location" type="text" placeholder="Lytton Gardens">
+                                            <select v-model="state.event.location">
+                                                <option>Los Gatos</option>
+                                                <option>Lytton Gardens</option>
+                                                <option>Sunny View</option>
+                                                <option>Chateau of Cupertino</option>
+                                            </select>
                                         </div>
                                         <div class="form-item">
                                             <label>Date + Time</label>
@@ -353,32 +368,14 @@
                             <th>Email</th>
                             <th>Phone</th>
                             <th>Roles</th>
-                            <th v-if="hasRole('admin')">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="user in model.users | filterBy state.search">
-                            <td @click="showUser(user)"><a @click="showUser(user)">{{user.name}}</a></td>
+                        <tr class="hoverable" @click="showUser(user)" v-for="user in model.users | filterBy state.search">
+                            <td>{{user.name}}</td>
                             <td>{{user.email}}</td>
                             <td>{{user.phone}}</td>
                             <td>{{user.roles}}</td>
-                            <td v-if="hasRole('admin')">
-                                <a @click="setRole(user._id, 'admin')">admin</a>
-                                 | 
-                                <a @click="setRole(user._id, 'member')">member</a>
-                                 | 
-                                <a @click="setRole(user._id, 'alumni')">alumni</a>
-                                 | 
-                                <a @click="setRole(user._id, 'applicant')">applicant</a>
-                                <br/>
-                                <a @click="resetParent(user.parent1)">reset parent 1</a>
-                                 | 
-                                <a @click="resetParent(user.parent2)">reset parent 2</a>
-                                <br/>
-                                <a @click="deleteUser(user._id)">delete</a>
-                                 | 
-                                <a @click="giveHours(user._id)">give hours</a>
-                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -398,7 +395,7 @@
                 </form>
                 <div class="text-right">
                     <span class="buttons group">
-                        <a type="primary" class="button small outline primary" @click="changePassword()">Change Password</a>
+                        <a type="primary" class="button small outline primary" @click="state.overlay='change_password'">Change Password</a>
                         <button class="button small outline" @click="signout()">Sign Out</button>
                     </span>
                 </div>
@@ -452,20 +449,88 @@
     <div v-if="state.overlay=='user'" class="news modal">
         <div class="close" @click="state.overlay=false"></div>
         <h3>{{state.user.name}}</h3>
-        <img v-if="state.user.picture" :src="state.user.picture"/>
-        <ul>
-            <li v-for="(key, value) in state.user" v-if="key!='salt' && key !='password'">
-                <b>{{key}}:</b> 
-                <span v-if="typeof value != 'object'">
-                    <code>{{value}}</code>
-                </span>
-                <ul v-if="typeof value == 'object'">
-                    <li v-for="(nkey, nvalue) in value">
-                        <b>{{nkey}}:</b> <pre>{{nvalue}}</pre>
+        <div class="row">
+            <div class="col">
+                <ul>
+                    <li v-for="(key, value) in state.user" v-if="key!='salt' && key !='password'">
+                        <b>{{key}}:</b> 
+                        <span v-if="typeof value != 'object'">
+                            <code>{{value}}</code>
+                        </span>
+                        <ul v-if="typeof value == 'object'">
+                            <li v-for="(nkey, nvalue) in value" v-if="key!='timesheet' && nkey !='password'">
+                                <b>{{nkey}}:</b> 
+                                <span v-if="typeof nvalue != 'object'">
+                                    <code>{{nvalue}}</code>
+                                </span>
+                                <ul v-if="typeof nvalue == 'object'">
+                                    <li v-for="(nnkey, nnvalue) in nvalue">
+                                        <b>{{nnkey}}:</b> <code>{{nnvalue}}</code>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
                     </li>
                 </ul>
-            </li>
-        </ul>
+            </div>
+            <div class="col">
+                <div v-if="hasRole('admin')">
+                    <a @click="setRole(state.user._id, 'admin')">admin</a>
+                     | 
+                    <a @click="setRole(state.user._id, 'member')">member</a>
+                     | 
+                    <a @click="setRole(state.user._id, 'alumni')">alumni</a>
+                     | 
+                    <a @click="setRole(state.user._id, 'applicant')">applicant</a>
+                    <br/>
+                    <a @click="resetParent(state.user.parent1)">reset parent 1</a>
+                     | 
+                    <a @click="resetParent(state.user.parent2)">reset parent 2</a>
+                    <br/>
+                    <a @click="deleteUser(state.user._id)">delete</a>
+                     | 
+                    <a @click="giveHours(state.user._id)">give hours</a>
+                </div>
+                <div>
+                    <table class="flat">
+                        <thead>
+                            <th>Date</th>
+                            <th>Hours</th>
+                            <th>Reason</th>
+                            <th v-if="hasRole('admin')">Action</th>
+                        </thead>
+                        <tbody>
+                            <tr v-for="entry in state.user.timesheet.history">
+                                <td>{{dateString(entry.reported_on)}}</td>
+                                <td>{{Math.round(entry.time / (60 * 60))}}</td>
+                                <td>{{entry.reason}}</td>
+                                <td v-if="hasRole('admin')">
+                                    <a @click="approveTime(state.user._id, entry)" v-if="!entry.approved">approve</a>
+                                    <a @click="disapproveTime(state.user._id, entry)" v-if="entry.approved">disapprove</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div v-if="state.overlay=='change_password'" class="password modal">
+        <div class="close" @click="state.overlay=false"></div>
+        <h3>Change Password</h3>
+        <div style="margin-bottom:5px;">
+            <input v-model="state.change_password.password" class="col-12" type="password" placeholder="Password">
+        </div>
+        <div>
+            <input v-model="state.change_password.confirm" class="col-12" type="password" placeholder="Confirm password">
+        </div>
+        <br/>
+        <div class="text-center" v-if="hasRole('admin')">
+            <div class="alert error" v-if="state.change_password.password!=state.change_password.confirm">
+                Your passwords don't match.
+            </div>
+            <button v-if="state.change_password.password==state.change_password.confirm" class="button small primary outline" @click="changePassword()">Change Password</button>
+        </div>
     </div>
     <div class="progress"><div class="bar" v-bind:style="{width: ajax.percent}"></div></div>
     <script src="/js/vue.js" type="text/javascript"></script>

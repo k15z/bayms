@@ -1,5 +1,8 @@
 Vue.use(VueCharts);
 Vue.config.debug = true;
+jQuery(window).resize(function () {
+    vm.$broadcast('redrawChart');
+});
 var vm = new Vue({
     el: "body",
     created: function () {
@@ -74,6 +77,10 @@ var vm = new Vue({
             post: {
                 title: "",
                 content: ""
+            },
+            change_password: {
+                password: "",
+                confirm: "",
             }
         },
         model: {
@@ -132,15 +139,17 @@ var vm = new Vue({
             window.location.href = "/";
         },
         changePassword: function () {
-            var pass = prompt("New password:");
-            if (pass && pass == prompt("Confirm password:"))
-                $.ajax({
-                    method: "POST",
-                    url: "/api/v2/auth/change",
-                    data: {
-                        password: pass
-                    }
-                });
+            var self = this;
+            $.ajax({
+                method: "POST",
+                url: "/api/v2/auth/change",
+                data: {
+                    password: self.state.change_password.password
+                }
+            }).done(function() {
+                self.state.overlay = false;
+                self.state.change_password = {};
+            });
         },
         changePicture: function () {
             var self = this;
@@ -163,6 +172,7 @@ var vm = new Vue({
                 method: "POST", 
                 url: "/api/v2/user/" + user_id + "/roles/" + role
             }).done(function () {
+                self.state.overlay = false;
                 $.get('/api/v2/user/all')
                     .done(function (obj) { 
                         self.model.users = obj; 
@@ -197,42 +207,39 @@ var vm = new Vue({
                 }
             });
         },
-        startHours: function (user_id) {
-            var self = this
-            var reason = prompt("Why?")
-            if (!reason)
-                return
-            $.ajax({
-                method: "POST", 
-                url: "/api/v2/user/" + user_id + "/timesheet/active",
-                data: {
-                    reason: reason
-                }
-            }).done(function () {
-                $.get('/api/v2/user/all')
-                    .done(function (obj) { 
-                        self.model.users = obj; 
-                    });
-            })
-        },
-        stopHours: function (user_id) {
-            var self = this
-            $.ajax({
-                method: "POST", 
-                url: "/api/v2/user/" + user_id + "/timesheet/inactive"
-            }).done(function () {
-                $.get('/api/v2/user/all')
-                    .done(function (obj) { 
-                        self.model.users = obj; 
-                    });
-            })
-        },
         deleteUser: function (user_id) {
             var self = this
             $.ajax({
                 method: "POST", 
                 url: "/api/v2/user/" + user_id + "/delete"
             }).done(function () {
+                self.state.overlay = false;
+                $.get('/api/v2/user/all')
+                    .done(function (obj) {
+                        self.model.users = obj;
+                    });
+            });
+        },
+        approveTime: function (user_id, time) {
+            var self = this
+            $.ajax({
+                method: "POST", 
+                url: "/api/v2/user/" + user_id + "/timesheet/" + time._id + "/approve"
+            }).done(function () {
+                time.approved = true;
+                $.get('/api/v2/user/all')
+                    .done(function (obj) {
+                        self.model.users = obj;
+                    });
+            });
+        },
+        disapproveTime: function (user_id, time) {
+            var self = this
+            $.ajax({
+                method: "POST", 
+                url: "/api/v2/user/" + user_id + "/timesheet/" + time._id + "/disapprove"
+            }).done(function () {
+                time.approved = false;
                 $.get('/api/v2/user/all')
                     .done(function (obj) {
                         self.model.users = obj;
@@ -299,6 +306,13 @@ var vm = new Vue({
             var hours = 0
             for (var i = 0; i < history.length; i++) 
                 hours += parseFloat(history[i].time) / (60*60)
+            return Math.round(hours)
+        },
+        pendingHours: function (history) {
+            var hours = 0
+            for (var i = 0; i < history.length; i++) 
+                if (!history[i].approved)
+                    hours += parseFloat(history[i].time) / (60*60)
             return Math.round(hours)
         },
         computeAge: function (birthday) {
@@ -550,7 +564,4 @@ var vm = new Vue({
             }
         }
     }
-});
-jQuery(window).resize(function () {
-    vm.$broadcast('redrawChart');
 });
