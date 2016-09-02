@@ -129,7 +129,8 @@ var vm = new Vue({
                 },
                 vAxis: {
                     title: 'Hours'
-                }
+                },
+                height: 360
             }
         }
     },
@@ -240,6 +241,19 @@ var vm = new Vue({
                 url: "/api/v2/user/" + user_id + "/timesheet/" + time._id + "/disapprove"
             }).done(function () {
                 time.approved = false;
+                $.get('/api/v2/user/all')
+                    .done(function (obj) {
+                        self.model.users = obj;
+                    });
+            });
+        },
+        deleteTime: function (user_id, time) {
+            var self = this
+            $.ajax({
+                method: "POST", 
+                url: "/api/v2/user/" + user_id + "/timesheet/" + time._id + "/delete"
+            }).done(function () {
+                time.time = "--DELETE--";
                 $.get('/api/v2/user/all')
                     .done(function (obj) {
                         self.model.users = obj;

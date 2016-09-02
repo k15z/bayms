@@ -40,7 +40,7 @@
                         <div class="col" style="padding-right:20px;">
                             <h4 class="subtitle muted">Calendar</h4>
                             <ul v-for="event in model.events">
-                                <li v-if="event.visible.members || hasRole('admin')">
+                                <li v-if="event.visible.members">
                                     {{event.time}}<br/>
                                     <i>{{event.location}}</i><br/>
                                     <span class="muted">
@@ -506,6 +506,7 @@
                                 <td>{{entry.reason}}</td>
                                 <td v-if="hasRole('admin')">
                                     <a @click="approveTime(state.user._id, entry)" v-if="!entry.approved">approve</a>
+                                    <a @click="deleteTime(state.user._id, entry)" v-if="!entry.approved">delete</a>
                                     <a @click="disapproveTime(state.user._id, entry)" v-if="entry.approved">disapprove</a>
                                 </td>
                             </tr>

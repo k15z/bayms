@@ -108,7 +108,7 @@ module.exports = (app, db, mailer, upload) ->
         user_id = new mongo.ObjectID(req.params.user_id)
 
         entry = sanitize(req.body)
-        entry._id = new mongo.ObjectID(req.params.user_id)
+        entry._id = new mongo.ObjectID()
         if not entry.time
             return res.status(400).send({"message": "malformed entry"})
         else
@@ -170,6 +170,32 @@ module.exports = (app, db, mailer, upload) ->
                 for item in user.timesheet?.history
                     if item._id.equals(new mongo.ObjectID(req.params.timesheet_id))
                         item.approved = false
+                db.collection('user').updateOne(
+                    { _id: user_id },
+                    { $set: user },
+                    (err) ->
+                        if err
+                            return res.status(500).send({"message": "failed to set inactive"})
+                        return res.status(200).send({"message": "success"})
+                )
+        )
+    )
+
+    app.post('/api/v2/user/:user_id/timesheet/:timesheet_id/delete', (req, res) ->
+        if !req.requestee
+            return res.status(401).send({"message": "access denied"})
+        if not "admin" in req.requestee?.roles
+            return res.status(401).send({"message": "access denied"})
+
+        user_id = new mongo.ObjectID(req.params.user_id)
+        db.collection('user').findOne(
+            { _id: user_id },
+            (err, user) ->
+                for i in [0...user.timesheet.history.length]
+                    item = user.timesheet.history[i]
+                    if item._id.equals(new mongo.ObjectID(req.params.timesheet_id))
+                        user.timesheet.history.splice(i, 1)
+                        break
                 db.collection('user').updateOne(
                     { _id: user_id },
                     { $set: user },
