@@ -48,6 +48,7 @@ var vm = new Vue({
             .done(function (obj) {
                 if (!obj.picture)
                     obj.picture = false
+                delete obj.token
                 self.model.user = obj;
                 self.ready = true
             })
@@ -104,7 +105,7 @@ var vm = new Vue({
                     rows.push([
                         date, 
                         hours, 
-                        hours + ' hour - ' + reason
+                        [date, hours + ' hour', reason].join(", ")
                     ])
                 }
             return rows

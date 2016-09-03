@@ -526,7 +526,7 @@
             <input v-model="state.change_password.confirm" class="col-12" type="password" placeholder="Confirm password">
         </div>
         <br/>
-        <div class="text-center" v-if="hasRole('admin')">
+        <div class="text-center">
             <div class="alert error" v-if="state.change_password.password!=state.change_password.confirm">
                 Your passwords don't match.
             </div>
