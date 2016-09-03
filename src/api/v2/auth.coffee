@@ -66,15 +66,9 @@ module.exports = (app, db, mailer) ->
         if !isString(req.body.email) or !isString(req.body.password)
             return res.status(400).send("Malformed email or password.")
 
-        security = zxcvbn(req.body.password)
-        if security.score <= 2
+        if req.body.password.length < 8 || req.body.password.match(/^[0-9]+$/) != null || req.body.password.match(/^[A-z]+$/) != null
             message = ""
-            message += "Your password is not strong enough. "
-            if security.feedback?.warning
-                message += "#{security.feedback.warning}. "
-            if security.feedback?.suggestions
-                suggestion = security.feedback.suggestions.join(" ")
-                message += "#{suggestion}"
+            message += "Your password must have at least 8 characters and must contain both numbers and letters. "
             return res.status(400).send(message)
 
         db.collection('user').findOne(
