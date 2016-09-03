@@ -314,34 +314,26 @@
                             etiquette</a> guidelines.
                         </p>
                         <h5 v-if="state.piece._id">Edit Piece: {{state.piece.name}}</h5>
-                        <table class="flat">
-                            <tbody>
-                                <tr class="form">
-                                    <td class="form-item" style="padding-right:5px;">
-                                        <input v-model="state.piece.name" type="text" placeholder="Piece Name">
-                                    </td>
-                                    <td class="form-item" style="padding:0px 5px;">
-                                        <input v-model="state.piece.composer" type="text" placeholder="Composer">
-                                    </td>
-                                    <td class="form-item" style="padding:0px 5px;">
-                                        <input v-model="state.piece.performer" type="text" placeholder="Performer">
-                                    </td>
-                                    <td class="form-item" style="padding:0px 5px;">
-                                        <input v-model="state.piece.length" type="text" placeholder="Length">
-                                    </td>
-                                    <td class="form-item" style="padding:0px 5px;">
-                                        <input v-model="state.piece.link" type="text" placeholder="Link">
-                                    </td>
-                                    <td v-if="hasRole('admin')"></td>
-                                    <td class="form-item" style="padding-left:5px;" v-if="state.piece._id">
-                                        <button class="button outline primary col-12" @click="state.piece={}">Done</button>
-                                    </td>
-                                    <td class="form-item" style="padding-left:5px;" v-if="!state.piece._id">
-                                        <button class="button outline primary col-12" @click="createPiece()">Submit</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="row">
+                            <div class="col form-item">
+                                <input v-model="state.piece.name" class="col-12" type="text" placeholder="Piece Name">
+                            </div>
+                            <div class="col form-item">
+                                <input v-model="state.piece.performer" class="col-12" type="text" placeholder="Performer">
+                            </div>
+                            <div class="col form-item">
+                                <input v-model="state.piece.length" class="col-12" type="text" placeholder="Length">
+                            </div>
+                            <div class="col form-item">
+                                <input v-model="state.piece.link" class="col-12" type="text" placeholder="Link">
+                            </div>
+                            <div class="col form-item" v-if="state.piece._id">
+                                <button class="button outline primary col-12" @click="state.piece={}">Done</button>
+                            </div>
+                            <div class="col form-item" v-if="!state.piece._id">
+                                <button class="button outline primary col-12" @click="createPiece()">Submit</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="text-right" v-if="state.event._id" style="margin-top:10px;">
                         <span v-if="hasRole('admin')">
@@ -491,7 +483,7 @@
                      | 
                     <a @click="giveHours(state.user._id)">give hours</a>
                 </div>
-                <div>
+                <div v-if="hasRole('admin') || state.user._id == model.user._id">
                     <table class="flat">
                         <thead>
                             <th>Date</th>

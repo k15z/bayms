@@ -70,8 +70,6 @@ module.exports = (app, db, mailer, upload) ->
                     else
                         if key == "_id"
                             continue
-                        if key == "timesheet"
-                            continue
                         if key == "name" or key == "email" 
                             continue
                         if key == "phone" or key == "roles"
