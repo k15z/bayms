@@ -127,6 +127,26 @@
                         </div>
                     </div>
                 </div>
+                <div class="row form" v-if="hasRole('alumni')">
+                    <div class="col">
+                        <div class="form-item">
+                            <label>Graduation Year</label>
+                            <input v-model="model.user.grad_year" type="text" debounce="500">
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-item">
+                            <label>Current School/Job</label>
+                            <input v-model="model.user.current_job" type="text" debounce="500">
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-item">
+                            <label>When did you join bayms</label>
+                            <input v-model="model.user.join_year" type="text" debounce="500">
+                        </div>
+                    </div>
+                </div>
                 <h3>Parents</h3>
                 <div class="row form">
                     <div class="col">
@@ -288,7 +308,9 @@
                                     <td>{{piece.composer}}</td>
                                     <td>{{piece.performer}}</td>
                                     <td v-if="hasRole('admin')">{{piece.length}}</td>
-                                    <td v-if="hasRole('admin')">{{piece.link}}</td>
+                                    <td v-if="hasRole('admin')">
+                                        <a v-if="piece.link" href="{{piece.link}}" target="_blank">Link</a>
+                                    </td>
                                     <td>
                                         <span v-if="piece.approved">Approved</span>
                                         <span v-if="!piece.approved">Pending</span>
@@ -319,6 +341,9 @@
                                 <input v-model="state.piece.name" class="col-12" type="text" placeholder="Piece Name">
                             </div>
                             <div class="col form-item">
+                                <input v-model="state.piece.composer" class="col-12" type="text" placeholder="Piece Composer">
+                            </div>
+                            <div class="col form-item">
                                 <input v-model="state.piece.performer" class="col-12" type="text" placeholder="Performer">
                             </div>
                             <div class="col form-item">
@@ -328,7 +353,7 @@
                                 <input v-model="state.piece.link" class="col-12" type="text" placeholder="Link">
                             </div>
                             <div class="col form-item" v-if="state.piece._id">
-                                <button class="button outline primary col-12" @click="state.piece={}">Done</button>
+                                <button class="button outline primary col-12" @click="createPiece()">Done</button>
                             </div>
                             <div class="col form-item" v-if="!state.piece._id">
                                 <button class="button outline primary col-12" @click="createPiece()">Submit</button>

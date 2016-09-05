@@ -81,7 +81,7 @@ module.exports = (app, db, mailer) ->
                 email = req.body.email
                 password = req.body.password
 
-                computeHash(password, salt, (err, hash) ->
+                computeHash(password, salt, (err, hash) =>
                     user = {}
                     user.salt = salt
                     user.email = email
@@ -101,11 +101,11 @@ module.exports = (app, db, mailer) ->
 
                     db.collection('user').find({
                         "notification.application": true
-                    }).toArray((err, users) ->
+                    }).toArray((err, users) =>
                         emails = []
                         for user in users
                             emails.push(user.email)
-                        message = "#{user.email} applied for an account"
+                        message = "#{email} applied for an account"
                         mailer.sendMail({
                             from: '"BAYMS.Web" <bayms.web@gmail.com>'
                             to: ["bayms.web@gmail.com"]
