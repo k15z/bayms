@@ -33,7 +33,7 @@
                     Members
                 </div>
             </div>
-            <div class="tab-view" v-if="state.tab=='home'">
+            <div class="tab-view" v-if="state.tab=='home' && !hasRole('applicant')">
                 <div>
                     <h3>Hello<span v-if="model.user.name"> {{model.user.name}}</span>!</h3>
                     <div class="row">
@@ -223,7 +223,7 @@
                     </div>
                 </div>
             </div>
-            <div class="tab-view" v-if="state.tab=='events'">
+            <div class="tab-view" v-if="state.tab=='events' && !hasRole('applicant')">
                 <select v-model="state.event_id" style="width:auto;">
                     <option value="{{event._id}}" v-for="event in model.events" v-if="event.visible.members || hasRole('admin')">{{event.time}}</option>
                     <option value="create" v-if="hasRole('admin')">Create Event</option>
@@ -374,7 +374,7 @@
                     </div>
                 </div>
             </div>
-            <div class="tab-view" v-if="state.tab=='members'">
+            <div class="tab-view" v-if="state.tab=='members' && !hasRole('applicant', 'member')">
                 <div style="margin-bottom:6px;">
                     <input v-model="state.search" type="text" class="col-12" placeholder="search..."></input>
                 </div>
@@ -417,7 +417,7 @@
                     </span>
                 </div>
             </div>
-            <div class="recent-news">
+            <div class="recent-news" v-if="!hasRole('applicant')">
                 <h5 class="title">Recent News</h5>
                 <div class="news-item" v-for="news in model.news" @click="showEditor(news)">
                     <h4 class="news-title">

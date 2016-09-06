@@ -5,10 +5,13 @@ module.exports = (app, db, mailer) ->
 
     getUser = (callback) ->
         db.collection('user').find({
-            $or: [
-                { "waiver.a": true },
-                { "waiver.b": true },
-                { "waiver.c": true }
+            $and: [
+                roles: {$ne: "applicant"},
+                $or: [
+                    { "waiver.a": true },
+                    { "waiver.b": true },
+                    { "waiver.c": true }
+                ]
             ]
         }).toArray((err, users) ->
             for user in users
